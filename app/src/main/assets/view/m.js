@@ -7721,7 +7721,8 @@ const pb={
                 }
               }
               vtt.init(pb.subtitles);
-              pb.init_video_mp4upload(v.d.sources[0].url);
+              var quality_selection=4-pb.cfg_data.quality;
+              pb.init_video_mp4upload(v.d.sources[quality_selection].url);
             }catch(e){
               pb.playback_error(
                 'PLAYBACK ERROR',
