@@ -1913,11 +1913,21 @@ var kaas={
               od=di;
             }
           }
-          else if (di.name=='DuckStream'){
+          else if (di.name=='CatStream'){
+            bs=di;
             view_data.servers[stid].push(
-              pb.serverobj('DuckStream',2)
+              pb.serverobj('CatStream',2)
             );
             if (pb.server_selected(2)==2){
+              hasod=true;
+              od=di;
+            }
+          }
+          else if (di.name=='DuckStream'){
+            view_data.servers[stid].push(
+              pb.serverobj('DuckStream',3)
+            );
+            if (pb.server_selected(2)==3){
               hasod=true;
               od=di;
             }
@@ -2258,7 +2268,7 @@ var kaas={
   streamGet:function(url, type, cb){
     var vidUrl=new URL(url);
     var vidMid=(type=='duckstream')?'mid':'id';
-    var vidBird=(type=='birdstream')?true:false;
+    var vidBird=((type=='catstream')||(type=='birdstream'))?true:false;
     var vidId=vidUrl.searchParams.get(vidMid);
     var vidLang=vidUrl.searchParams.get('ln');
     var vidHost=vidUrl.host;
@@ -2271,39 +2281,92 @@ var kaas={
     function streamLoadSource(sourceUrl){
       $ap(sourceUrl,function(r){
         if (r.ok){
+          var srcData=null;
           try{
-            var srcData=JSON.parse(r.responseText);
-
-            if ('manifest' in srcData){
-              try{
-                console.log("DEC DATA: "+JSON.stringify(data));
-                cb(srcData);
-              }catch(ee){
-                console.warn("Err streamGet cb: "+ee);
+            srcData=JSON.parse(r.responseText);
+          }catch(e){
+            srcData=null;
+          }
+          if (srcData){
+            try{
+              if ('manifest' in srcData){
+                try{
+                  console.log("DEC DATA: "+JSON.stringify(srcData));
+                  cb(srcData);
+                }catch(ee){
+                  console.warn("Err streamGet cb: "+ee);
+                }
+                return;
               }
-              return;
-            }
-            else{
-              var encData=srcData.data.split(':');
-              var decData=_JSAPI.aesDec(
-                encData[0],
+              else{
+                var encData=srcData.data.split(':');
+                var decData=_JSAPI.aesDec(
+                  encData[0],
+                  vidKey,
+                  encData[1]
+                );
+                console.warn(JSON.stringify(["AESDEC",encData[0],
                 vidKey,
-                encData[1]
-              );
-              console.warn(JSON.stringify(["AESDEC",encData[0],
-              vidKey,
-              encData[1], decData]));
-              var data=JSON.parse(decData);
-              data.server_type=type;
-              data.server_url=url;
-              try{
-                cb(data);
-              }catch(ee){
-                console.warn("Err streamGet cb: "+ee);
+                encData[1], decData]));
+                var data=JSON.parse(decData);
+                data.server_type=type;
+                data.server_url=url;
+                try{
+                  cb(data);
+                }catch(ee){
+                  console.warn("Err streamGet cb: "+ee);
+                }
+                return;
               }
-              return;
-            }
-          }catch(e){}
+            }catch(e){}
+          }
+          else{
+            try{
+              var kk=$n('div','',0,0,r.responseText);
+              var ast=kk.querySelector('astro-island[ssr]');
+              if (ast){
+                srcData=JSON.parse(ast.getAttribute('props'));
+                console.log(srcData);
+                if ('manifest' in srcData){
+                  try{
+                    try{
+                      var subs=[];
+                      for (var i=0;i<srcData.subtitles[1].length;i++){
+                        var k=srcData.subtitles[1][i][1];
+                        var psh={
+                          "name":k.name[1],
+                          "language":k.language[1],
+                          "src":k.src[1]
+                        };
+                        if (psh.language=='en'){
+                          subs.unshift(psh);
+                        }
+                        else{
+                          subs.push(psh);
+                        }
+                      }
+                      srcData.subtitles=subs;
+                    }catch(ext){}
+                    srcData.vttabs=true;
+                    srcData.manifest=srcData.manifest[1];
+                    srcData.isDash=true;
+                    if (srcData.manifest.indexOf("http")!=0){
+                      srcData.manifest="https:"+srcData.manifest;
+                      srcData.isDash=false;
+                    }
+                    else{
+                      srcData.manifest=srcData.manifest.replace('https:////','https://');
+                    }
+                    console.log("DEC DATA: "+JSON.stringify(srcData));
+                    cb(srcData);
+                  }catch(ee){
+                    console.warn("Err streamGet cb: "+ee);
+                  }
+                  return;
+                }
+              }
+            }catch(e){}
+          }
         }
         cb(null);
       },
@@ -6329,7 +6392,7 @@ const vtt={
         chunks.push({t:timelines[i].tx,s:i,e:i});
       }
       else{
-        chunks[d].t+="  A2Q7R  "+timelines[i].tx;
+        chunks[d].t+="  [A1234]  "+timelines[i].tx;
         chunks[d].e=i;
       }
       if (++m==15){
@@ -6379,7 +6442,7 @@ const vtt={
     setTimeout(function(){
       vtt.translate_text(chunk.t,lang,function(txts){
         if (txts){
-          txts=txts.split("A2Q7R");
+          txts=txts.split("[A1234]");
           // console.log(txts);
           for (var i=0;i<txts.length;i++){
             var p=chunk.s+i;
@@ -7044,6 +7107,7 @@ const pb={
     performance:[true,false,true,true,false],
     autoskip:false,
     autonext:true,
+    disablegesture:false,
     closeconfirm:0,
     html5player:false,
     skipfiller:false,
@@ -7090,6 +7154,8 @@ const pb={
       var j=JSON.parse(itm);
       if (j){
         pb.cfg_data.autoskip=('autoskip' in j)?(j.autoskip?true:false):false;
+        pb.cfg_data.disablegesture=('disablegesture' in j)?(j.disablegesture?true:false):false;
+        
         
         pb.cfg_data.autonext=('autonext' in j)?(j.autonext?true:false):true;
         pb.cfg_data.html5player=('html5player' in j)?(j.html5player?true:false):false;
@@ -7235,6 +7301,7 @@ const pb={
         return;
       }
     }
+    pb.cfg_data.disablegesture=false;
     pb.cfg_data.autoskip=false;
     pb.cfg_data.closeconfirm=0;
     pb.cfg_data.autonext=true;
@@ -7668,6 +7735,8 @@ const pb={
     else{
       pb.cfg_update_el('animation');
       pb.cfg_update_el('autoskip');
+      pb.cfg_update_el('disablegesture');
+      
       pb.cfg_update_el('closeconfirm');
       
       pb.cfg_update_el('autonext');
@@ -8739,12 +8808,12 @@ const pb={
               for (var i=0;i<n;i++){
                 var tk=b.subtitles[i];
                 var tksrc=tk.src;
-                if (tksrc.indexOf("//")!=0){
+                if ((!b.vttabs)&&(tksrc.indexOf("//")!=0)) {
                   var vurl=new URL(pb.data.stream_vurl);
                   tksrc="//"+vurl.host+tksrc;
                 }
                 pb.subtitles.push({
-                  u:'https:'+tksrc,
+                  u:(!b.vttabs)?'https:'+tksrc:tksrc,
                   d:(i==0)?1:0,
                   l:(tk.name+'').toLowerCase().trim(),
                   i:(tk.language+'').toLowerCase().trim()
@@ -8798,18 +8867,15 @@ const pb={
             /* Load Videos */
             console.warn(["kaas.streamGet",b]);
             if (b.manifest){
-              pb.init_video_mp4upload(b.manifest+'#dash');
-              // pb.init_video_player_url('https:'+b.dash+'#dash');
-              // pb.cfg_update_el("quality");
-              // console.warn(["DASH VIDEO",b]);
-              // pb.sel_quality="Dash Auto";
-              // if (pb.pb_settings._s_quality){
-              //   pb.pb_settings.P.removeChild(pb.pb_settings._s_quality);
-              //   pb.pb_settings._s_quality=null;
-              // }
+              if (b.isDash){
+                console.log("LOAD DASH: "+b.manifest+'#dash');
+                pb.init_video_mp4upload(b.manifest+'#dash');
+              }
+              else{
+                pb.init_video_mp4upload(b.manifest);
+              }
             }
             else{
-              // pb.init_video_player_url('https:'+b.hls);
               pb.init_video_mp4upload('https:'+b.hls);
             }
           });
@@ -10592,7 +10658,7 @@ const pb={
           if (pb.pb.classList.contains('menushow')){
             _KEYEV(c);
           }
-          else if (_ISELECTRON){
+          else if (_ISELECTRON || pb.cfg_data.disablegesture){
             _KEYEV(c);
           }
           else{
@@ -10626,7 +10692,7 @@ const pb={
           }
         }
         else if(c==KLEFT||c==KRIGHT){
-          if (!pb.pb.classList.contains('menushow')){
+          if (!pb.pb.classList.contains('menushow') && !pb.cfg_data.disablegesture){
             _API.last_key_source=1;
             pb.track_keycb(pb.pb_tracks,c);
             pb.pb._minmove=window.outerWidth*0.01;
@@ -14801,6 +14867,16 @@ const home={
           home.settings.video.P,
           '<c>cancel_presentation</c> Close Confirmation<span class="value">-</span>'
         );
+
+        if (_USE_TOUCH){
+          home.settings.tools._s_disablegesture=$n(
+            'div','',{
+              action:'*disablegesture'
+            },
+            home.settings.video.P,
+            '<c class="check">clear</c><c>do_not_touch</c> Disable Touch Gesture'
+          );
+        }
 
         home.settings.tools._s_preloadep=$n(
           'div','',{
