@@ -8,6 +8,232 @@ EXAMPLE:
 https://api.aniskip.com/v2/skip-times/54744/3?episodeLength=0&types%5B%5D=ed&types%5B%5D=mixed-ed&types%5B%5D=mixed-op&types%5B%5D=op&types%5B%5D=recap
 ```
 
+# AnimeKai
+```js
+/* nonstrict */
+function safeBtoa(s){ /* safeBtoa */
+  return btoa(s).replace(/\//g, '_').replace(/\+/g, '-').replace(/\=/g, '');
+}
+function safeAtob(s){
+    return atob(s.replace(/_/g, '/').replace(/-/g, '+'))
+}
+function rc4(key,str){
+    var s = [], j = 0, x, res = '';
+    for (var i = 0; i < 256; i++) {
+      s[i] = i;
+    }
+    for (i = 0; i < 256; i++) {
+      j = (j + s[i] + key.charCodeAt(i % key.length)) % 256;
+      x = s[i];
+      s[i] = s[j];
+      s[j] = x;
+    }
+    i = 0;
+    j = 0;
+    for (var y = 0; y < str.length; y++) {
+      i = (i + 1) % 256;
+      j = (j + s[i]) % 256;
+      x = s[i];
+      s[i] = s[j];
+      s[j] = x;
+      res += String.fromCharCode(str.charCodeAt(y) ^ s[(s[i] + s[j]) % 256]);
+    }
+    return res;
+}
+function reverseString(s) {
+    return s.split('').reverse().join('');
+}
+function replaceChars(s,f,r){
+    let i = f.length;
+    let m = {};
+    while (i-- && (m[f[i]] = r[i])){}
+    return s.split("").map(v=>m[v]||v).join('');
+}
+function vrfStrict(n){
+  n = safeBtoa(
+    replaceChars(
+        safeBtoa(
+            rc4(
+                'sXmH96C4vhRrgi8', 
+                reverseString(
+                    reverseString(
+                        safeBtoa(
+                            rc4('kOCJnByYmfI', replaceChars(
+                                    replaceChars(
+                                        reverseString(
+                                            safeBtoa(
+                                                rc4('0DU8ksIVlFcia2', n)
+                                            )
+                                        ),
+                                        '1wctXeHqb2', '1tecHq2Xbw'
+                                    ),
+                                    '48KbrZx1ml', 'Km8Zb4lxr1'
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        ), 'hTn79AMjduR5', 'djn5uT7AMR9h')
+    );
+  return encodeURIComponent(n);
+}
+function vrfNoStrict(n){
+    return safeBtoa(rc4(
+        'n1PEbDBiipbJZvZc',
+        encodeURIComponent(n)
+    ));
+}
+
+function vrfDecode(n){
+    n = rc4(
+        '0DU8ksIVlFcia2', 
+        safeAtob(
+            reverseString(
+                replaceChars(
+                    replaceChars(
+                        rc4('kOCJnByYmfI', 
+                            safeAtob(
+                                reverseString(
+                                    reverseString(
+                                        rc4(
+                                            'sXmH96C4vhRrgi8',
+                                            safeAtob(
+                                                replaceChars(
+                                                    safeAtob(n),
+                                                    'djn5uT7AMR9h',
+                                                    'hTn79AMjduR5'
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ), 'Km8Zb4lxr1', '48KbrZx1ml'
+                    ),
+                    '1tecHq2Xbw', '1wctXeHqb2'
+                )
+            )
+        )
+    )
+    return decodeURIComponent(n);
+}
+
+function vrfDecodeNoStrict(n){
+    return decodeURIComponent(
+        rc4(
+            'n1PEbDBiipbJZvZc', 
+            safeAtob(n)
+        )
+    );
+}
+
+function vrfMegaDecode(n) {
+    n = reverseString(
+        replaceChars(
+            rc4(
+                '5ygxI8hjLiuDQ0',
+                safeAtob(
+                    rc4('z9cWnXuoDtx', safeAtob(
+                        replaceChars(
+                            reverseString(
+                                replaceChars(
+                                    rc4(
+                                        'EZnfG1IL6DF',
+                                        safeAtob(
+                                            reverseString(
+                                                safeAtob(n)
+                                            )
+                                        )
+                                    ),
+                                    'M2DCEbQmWOe', 'bEDCeOQ2mWM')
+                                ), 
+                                'Lw7nfcTNz3FbWy', 'TFf37zywcNWnLb'
+                            )
+                        )
+                    )
+                )
+            ), 'HK0TOgYzU1C', 'T1CHYU0OKgz'
+        )
+    );
+    return decodeURIComponent(n);
+}
+
+
+/*********************** TEST UNIT ***********************/
+// NOTE: USING ANIWAVE LIBS????
+// TTIP: https://animekai.to/ajax/anime/tip?id=c4C486M
+// SUBS: https://animekai.to/ajax/home/items?name=sub-updates
+//       https://animekai.to/ajax/home/items?name=sub-updates&page=2
+//
+// MEGAUP EMBED URL: https://megaup.cc/e/kZHvJnm3WS2JcOLxELpJ7xHpCQ
+// MEGA DATA URL: https://megaup.cc/media/kZHvJnm3WS2JcOLxELpJ7xHpCQ
+vrfMegaDecode("SFJ0N2hwT3d6V2ZFa21EM0szZ0ZnN2REOVNyaVAyTzhkNGZvZGJDYlJQeVdOVHdPTklRMThNaXhvY0w0NTZ3VWV3dUxETXN1cjYwQl85YWtrUXV5NEpHWUVBa2JlU3Z3ZFV1TUUzaGVyNnl1MV92WGxZZjdKWkh3VFFBR1BIcDl3VVR3b0h4QkxZdlFQRDgyNEdXM2lXSkFSY2tPQ0owd2lfZld3cWdqdkpRT01Bcm1vdmN0d29ibGxsMXpHajNnUHBJV0c4ZGJoNExkcDRZUHV2d1pmcXRjUkZXSUloUUphQnNxN2tKSEsxLWFTZHVKYjdreGpCeTExY0NFMTRULWN5QmtWMEI3UlB6cmppVmdPQi1EXzBCNHBUT2FUUWFUaXI2REE3QWdRZGtuWXhhcFZxclVHdW92ZXNCNjM1ZTcxZVZWQW1SRThlUk1XYTNlN0U3QWpUNHYzXzNYQU5xNHVvU1RLS19Ma1dGOFNFVnI1bmV1RTdYOHBoeXJJcWJNbThkX2wwSFUwVlJVa0wxU3dJYmc1Z1lPMzlzcHVOUmpBaFNHcmJOQUFsQllpSkN2czRrc3VnaG5UaVI2TzRKM1ZDTkxLX1ZWclNvU3BvOVBMdVltc3NrUlhPOHkwbG0yYWRVR2I3RzBzQ2VuVWNBbktsRkJRTW41MC1lU2hMQTdHcFRhWUMyZkVtRDNZdG43ZUs3M1FfcU9hVmU5VUc1d2VDajZabU9TcG1iV3hUV0hWVm5iQlFzLWd3UzRYRnVEaGZhWG9YUmdTSWctMGdsR1F0bmdPbl9XRmFNaS1wS25VelhETF9weGJfQXV6bUlqVFBNaDk3bTYtS2M5NkZOQUM4bDBsdWJfVUltRXpYZ1FYZklabFJYd1ItbEplejJvTFNsWXVuSTNzaXJBdTJaMl9LTW43NEJZN2NjNFB1UDN0bUpGRGM4ZGdkVkJHbTlOQ3Y1aHFTdUE4YU1CU2tCQlpGaUlhOEdnM2U3VmExWS1VS0dXQW4xUVVHVkxURDVMd1diMU0xR1VUcU5lTUk5NGFob2M0WWNrdzVJT2ZsNXVzdDNiS1JaSnZZd29kek9IM0ZmejBrUzhqTndVd0gyZkhHbjZuSVR4Yy1OckxXTTNCejZ5bDFuSklhcWR0SjhCbUxEOG5lb0RwYUF3NTN3U3FmbHZ4RVk0eDN5cHNlSnUtQUJBd0lReTZXSnlxc1BpWHhLUVQ4Unl0aE9qU2VzeHNwQ3B6dmtJU2FCWXNBS0w2MG1EeWxDZWhwRFlVX2M5S1B4RkYtMEZ6bzZqNHNvcVpsMnNQS3hEd2VrYThxaEpTNHdLWmp1b1h4Y1pKeTQtNnNYX211WVlOcmQzaDQ2Z05FMUJRdmJRdWtoYjNTUkJBZjQyelhWLVBnNlBlVjh1RVgwSkhKNjRhZ3pqc25LQzMzTWk0U3A1cEllTXJmNHRQOGVKaGFMQXdjT3duYVV0am5PYm1zTnFpRmJGNUY2X3pSNTREUkxIOHVkUWpFUTRVczFpNUt6T1dKblI4aTAxaWI2NU0xdnRPNnNVY3piSU5SMlNmSWFsVkpMRGNEUGJ5eDliUG9JWElwZ0RzeGI5RzJKNVNJZGNiUVR4U2RPckdJZ1gydHhzQkg4TG43N2t2RndUTnZkUDY4amxpYnJMT0ZXQ25lNGdxdXZnRndmaFFkLUI0Ul80Ykhncm9OdTZMdmJJQXAwN21mVENlaXhWbUxNLWRFTVVkb21uNENWS3VaZGJtdGhOY0FaSXBMaGtQbGhVRC1Idm5mbzI5OUtlUHJJTGxiTEpqdWpqLUZXdWhsazlDNmFvX0ktelpjNjFiVExUZTVHejc1RGJUTkRwU2NQcXRkalduS1VTMGNTUnp0Yzl6XzBISmdJenpTNXZiMUlHeHVwUXdJVkZyQU9hMFptMGNNemZMUXk5cTBtOHRQN1ozVGxzdHR5RHJOTWZrbm5ENXdSOGc3aFhORUtDUm03Q2ZyRXFzSWQ2SmxTLTNGYXR6d3pSNk93dGVWd2RvaDdGU1Y5OXR1YTJPdVBDOXN3TEp1TmZKM1l0R2Zmb280dHdLSzF1Tm0wTVdRcUVTN1ZIU1F6TDRONjhDNUpwcnY2SVBZVUdCN0JzTElsNEVtaTRwYzc5SGEzelRoTGVsdmNqQnM4UVNITnRnMTF5STRCQW1tVzhXc0NpRUdjZE04N2NiRXExbTZMdGNWRjhXbE41WUZ2V3k0MFVOTGNIc3NJdWxLQUNzTHFLeVVEUENZUENrVUd5eDNQalBWQWVHQzVmQmU0VENYeWV5Mm5EQWktUmtDbTVPS3F2R21MdHF0S2ZXQzB1ZjNfSHRrZjYwdlA3c0V3RlBEdnpCSHU2aVo2NWlXSEpVZEgtUy1hYW5pZi1ycWNzblp2Q0FFdUc2NVE3WWQ4NHlGQjExdzlJdTBuZlRIQ3VJdEJ0TkxRTUVNeklXdW1wTlV4VVBuUDhmbjVyWHNfektidXhQLTcwVEJva0hGZVgxckxneFVnbXJuRzQzbXV2NzN6VXN5SURkSy0yeS1mYTZZRXE1ckFDNmo4WWdZak1LdEdkZlJBNEFFd2tzSTJ6aXh0cmp6bWhiWWZWbURKc1ZfT1ZhMTZfakltZUd1MkZaYlFNNURfd0J3MkUzWE91QnVBQ1NYSDZHeW1VTUpHenNHcERyZ3NYQWkzb1J3ejVXZG0ySTRPWGJhLVNZSE9S");
+
+RESULT = '{"sources":[{"file":"https:\\/\\/54d8e.infinity-loop-21.biz\\/c3\\/h1e00e76d6043835b9cc206f446a7563984a4cd132f93c00355ffcaf60d90855259cd8d70c2d9014636b170eed451dae77dd9dab5507b1dea249d16e5cf68f083249697715c0768604e8a2a1eddff5b7dde5ae8e6fc461b835f82d0714e69ba96ebc177ebd6a7d7e2c236a0970429\\/list,5b49a52e32138f5289c309be43a64868d1bfd0166088c3.m3u8"}],"tracks":[{"file":"https:\\/\\/54d8e.megaup.cc\\/v3\\/h1e00e76d6043835b9cc206f446a7563984a4cd132f93c00355ffcaf60d90855259cd8d70c2d9014636b170eed451dae87ad8d8bb527f1dea249d16e5cf68f0842b9bc86743047b234e83231397a71934950ebababc02598a0f918c2b4c38b1d1f2dd3de6ccb889ac93\\/thumbnails.vtt","kind":"thumbnails"}],"download":"https:\\/\\/megaup.cc\\/download\\/2MjhfTmrWSyJcOLxELpI5hDhDQ"}';
+
+//----------------------------
+vrfDecode("amhVMUVlS3g4clFuQ0owd2xWei1ZcjVWc1V1NXpseVFrNTd6VEhtZHpXSGotNHQ1SjI3UFlta012V0xtWmhHcTBxTjdOQ0dIMVpXb2FiNnllQ1I3Ty11c242bFFjTElpMkNOOWs4VWpSUXdtWFl5MXJLbWhrU1hDX1FibDVDd2pnQ3pHd2VKcGh2STBWNjRVVFA2TjBKVTRoTnpleWQ3cjBQSHM1MTVFZVR5RktCVG1jT2FaUGx1WUx2bGdUM3pDX2FFMTFveEx4Mk9PN2FjZ0tKNTlTazBzTXc1YnpEdHVXWjBxN250VnpZdHlIT2hXYUdJbEx2WEFsemVZblNtODNBbHF4WHhybkt1V0lmUHBtWl9KVWtHb1dZNTRObEtNUEZBRl9leVFhSnZEUXhnSWlnbnU4ZzA5VFFGdEZvMjQ4NF8yaGZZcFI4UERuSzhzTTQzdVpfeHJwOXlwWlRiUE9KQXUwT1RtM2Y1MGFpTkV2U3ZRTWhnTDc5cDc1cUpWZFZLQnN2VU12dWhoLXc");
+
+RESULT='{"url":"https:\\/\\/megaup.cc\\/e\\/m43ve2T0WS2JcOLxELpI7hHpCQ","skip":{"intro":[0,0],"outro":[0,0]}}';
+
+
+//----------------------------
+vrfDecodeNoStrict('ZZQdeGGgpgtJaU1ZTbbuRdZIKVnndk63ViNBxyXGiUh6YtUMeHBh0zqyIUdczFyYjCPPu2cSmkFjdREmZMMcAgiBgX3J');
+
+RESULT = '{"id":0,"settings":[],"folders":[]}';
+
+
+//----------------------------
+vrfStrict('c4C486M');
+
+RESULT = 'OUlUN0RQMmRfcE5fSTRVVUFWWQ';
+
+
+rc4('0DU8ksIVlFcia2','c4C486M');
+
+
+```
+
+### TESTING ANIMEKAI
+```
+## EPS:
+## https://animekai.to/ajax/episodes/list?ani_id=e4K58w&_=V1JVWUl2aXpBNFVBNzVr
+{"status":200,"result":"<div class=\"head-top\"> <div class=\"title\">Episodes</div> <div> <form> <div class=\"form-group\"> <input type=\"text\" class=\"form-control form-control-sm\" placeholder=\"Find\"> </div> </form> <div class=\"subdub-sw\"> <span data-value=\"sub\"><svg class=\"sub\"><use href=\"#sub\"></use></svg></span> <span data-value=\"dub\"><svg class=\"dub\"><use href=\"#dub\"></use></svg></span> </div> <button class=\"btn list-sw\"><i class=\"fa-solid fa-square-list\"></i></button> </div></div><div class=\"head-bot\"> <button class=\"btn range-nav prev\"><i class=\"fa-solid fa-sharp fa-angle-left\"></i></button> <div class=\"dropdown\"> <button class=\"btn range-label\" type=\"button\" data-bs-toggle=\"dropdown\"></button> <div class=\"dropdown-menu range-options\"> <div class=\"dropdown-item item\" data-value=\"001-009\">001-009</div> </div> </div> <button class=\"btn range-nav next\"><i class=\"fa-solid fa-sharp fa-angle-right\"></i></button></div><div class=\"eplist titles\"> <ul class=\"range\" data-range=\"001-009\" style=\"display: block;\"> <li><a href=\"#\" num=\"1\" slug=\"1\" langs=\"3\" token=\"ccTwp_Hxokjv02gVx4if\" class=\"\">1<span data-jp=\"\">You Aren&#039;t E-Rank, Are You?</span></a></li> <li><a href=\"#\" num=\"2\" slug=\"2\" langs=\"3\" token=\"c93zp-DypkmkiXUXj86b\" class=\"\">2<span data-jp=\"\">I Suppose You Aren&#039;t Aware</span></a></li> <li><a href=\"#\" num=\"3\" slug=\"3\" langs=\"3\" token=\"L4Hk-fHztBWzhH5Xy4mH\" class=\"\">3<span data-jp=\"\">Still a Long Way to Go</span></a></li> <li><a href=\"#\" num=\"4\" slug=\"4\" langs=\"3\" token=\"KYXkrP3loU3k2nVMz4fV\" class=\"\">4<span data-jp=\"\">I Need to Stop Faking</span></a></li> <li><a href=\"#\" num=\"5\" slug=\"5\" langs=\"3\" token=\"O9jut_zlt0e70m9Qj5SD\" class=\"\">5<span data-jp=\"\">This Is What We&#039;re Trained to Do</span></a></li> <li><a href=\"#\" num=\"6\" slug=\"6\" langs=\"3\" token=\"dcK6pKTk6Q7ukm8UxYyX\" class=\"\">6<span data-jp=\"\">Don&#039;t Look Down On My Guys</span></a></li> <li><a href=\"#\" num=\"7\" slug=\"7\" langs=\"3\" token=\"JYu7qq7yvRuzlXRXxYfd\" class=\"\">7<span data-jp=\"\">The 10th S-Rank Hunter</span></a></li> <li><a href=\"#\" num=\"8\" slug=\"8\" langs=\"1\" token=\"M4bvufH56BPmhg\" class=\"\">8<span data-jp=\"\">Looking Up Was Tiring Me Out</span></a></li> <li><a href=\"#\" num=\"9\" slug=\"9\" langs=\"1\" token=\"dN7muafz5Ue4kQ\" class=\"\">9<span data-jp=\"\">It Was All Worth It</span></a></li> </ul> </div> "}
+
+## GET SERVER:
+## https://animekai.to/ajax/links/list?token=dN7muafz5Ue4kQ&_=S0pUNzdQbWRrOEVrSnBFVGluam1lTG5YeVQ5cDJVZnFrNTc
+{"status":200,"result":"<div class=\"server-note\"> <p>You are watching <b>Episode 9</b></p> <span>If the current server is not working, please try switching to other servers.</span></div><div class=\"server-wrap\"> <div class=\"server-type\" data-tabs=\".server-wrap .server-items\"> <span class=\"tab active\" data-id=\"sub\"> <svg class=\"sub\"><use href=\"#sub\"></use></svg> Hard Sub </span> <span class=\"tab \" data-id=\"softsub\"> <svg class=\"sub\"><use href=\"#sub\"></use></svg> Soft Sub </span> </div> <div class=\"server-items lang-group\" data-id=\"sub\" style=\"display: ;\"> <span class=\"server\" data-sid=\"3\" data-eid=\"cIe69KGo\" data-lid=\"dIS48a6p6A\" data-tid=\"t_9133_sub\" >Server 1</span> <span class=\"server\" data-sid=\"2\" data-eid=\"cIe69KGo\" data-lid=\"dIS48a6p5w\" data-tid=\"t_9133_sub\" >Server 2</span> </div> <div class=\"server-items lang-group\" data-id=\"softsub\" style=\"display: none;\"> <span class=\"server\" data-sid=\"3\" data-eid=\"cIe69K6n\" data-lid=\"dIS48a6g6Q\" data-tid=\"t_9133_softsub\" >Server 1</span> <span class=\"server\" data-sid=\"2\" data-eid=\"cIe69K6n\" data-lid=\"dIS48a6g6A\" data-tid=\"t_9133_softsub\" >Server 2</span> </div> </div>"}
+
+## Get MegaUP URL:
+## https://animekai.to/ajax/links/view?id=dIS48a6p6A&_=UVpJN001ckY4cHh4R3I4QVJWM2RqTFdCeFQ
+{"status":200,"result":"UVo4RExmLVl1cVYtR0xRVGRWM3VjSXl0eHh1ZzhIbVhrTFl3VEhtbDJVYldrYTF3THhaMlkyMDJrR245Wkxlai10SjdOVDZINGhxdlFycnJMaTVQUXJCMjNoYy1FSXNQMkM5cmxOb2hpMUo0WkthYXZvajEwektlLWpMSmhnVjR3bkhPeF9vZzRSRXhlODAyQnYyQjhZSVdwY0RjcjJJRTE1dkdrR3plRFVtd0tkN2xjT25xRGtOMGotbGRjbnpDNHFJank0bDN5MjJfY28xUkZmZjlRWHc4ZVR2TG9EdG5RT29wVFhsNjJvb3JROHdSTW4waVVjUElwZ25ad0gyWTJDTTZ4WDRaODRoV0pOcmVtcHpLYVY2RVloXzFheGpaT1VYNXdlZjBMZjNmT3dCYUFEX2JwZ3BSUVQ5akJjaU84WXlNenZzcEFmbVd5SzdUUTVlR2FlRnRkMnFKRVZmdlBvdlhfT1lEenZieVVVQnlSQ2I2anV3YWVqOUZfSk5mZ0ZDQWliSVp5b3BuUk5fU2ZCNDZ3eTVSOHZqbUFn"}
+>> DECODE: {"url":"https:\\/\\/megaup.cc\\/e\\/j4WuInGsWS2JcOLxELpJ7BvpCQ","skip":{"intro":[0,87],"outro":[1325,1414]}}
+
+
+## GET M3U8
+## https://megaup.cc/media/j4WuInGsWS2JcOLxELpJ7BvpCQ
+{"status":200,"result":"Z3FReEhYeWIwTEJ4Sm5GdHN3RE5iLTNtNVpMM3k3dHF5Ym9IdEF3NmNuN2FyenFrOW53enlaMUxCSGFiQWFYbEZyWEVFNVdSSThzdVRmaE4tZFlSTW80LWlOUVFmcEhzX21fNVVkUjkwZDFlTnpMUnNiSm5oQ3gtamxYTHNRaTAtaGpCbjB5TXpjVmFzeXdNanlxYUFQNlZKYnduX19xS1c3ajZKRWk0MGJ5QUcycVhlSTlLaXBXb0hCanBabXFMX3Bza2E1cXgxbnJqVGg3TmNXT0E5SFdSNVpYb0phVTdXYkp6dmVrbGtkdk5GTlRoZW84NFBNMll0SlpOdUJDeUVzSkZpMDJnQkhSdzB5eXFUci1nVDdrelFqbnpVam9wdEdiQVJ3VlA3VmNRcWJjcVpPb0NTMGs1R3VMRl85SlN1YkJhS21NOG51R0lkeUczalVHYVNkNGVCS3lxamNYY1pIYmZPc3VmVlRpVXA3YWdoWlM2NFV3V1RfOEFudmt6Y19laUZ6VkJ3b1ZpSWRoOE41ZGcwWDdaaFhoVEhZeFFwbmswYkVjZHR2TlpDaUkxV0dUX05WaEJ5U2R0a3lnUTM4VDhEMmtiQXRzazQ5QnVkSW9IMkp0V3FCVFFjTGptWm9YSTNXQXZaMWMxR3cwdGxiaG5ranRUNnBzd3lrWHR4TE14a2tJQ1BmTVgydlNBMEZJaTJmTXlVelNaaW4tZjYwNGViWDlCcjlFWGJfTFdpNjF6TkZHRy1CZ1hDSGtsaUFPZ2RpemRSc0ZNZUhqV0tmbFBBbGRNQTJ3dEJJZDVrb2ZIUGV6VGMtZXNKaklYMkJhcjVsSDMxb2VDWW5pZlBfMDczd0xxTzUxdC1CNUlYd1BlTC16czBIQ3JSWHhpSVczODAzS1RESXBTQV83aXpIOXZ2c1dDdkZtdm96bEQtc05JQllFY00tV21Nek5hWkZTVXVmOWhYTjNMNllSdnFrUmFNSG1MZVBQVm1PRjVtRUpFVnNCQ0llOXhxNjgtMFlOejBHQ3JISThUSlA5Mk5wd0ZBUHJEc1RNTVBnZ1ZKVG1VLWo0OXJMZGxZbEpObWVmSmRBVVVTclNIOENaSmVuUUlBNEdOQlhYWHdaUjJuM01BQjNwcXM4cjZ2NGpQWjBTeGxNdDZxVmhvZVdXelZfa19fZXd6Vm1IMjBENlB3Nl9oNHY0LXgwSTI2amhKeVFSSmktUE9yM0poNmxmb0pSWE13M2dGcjNPaXQxMFJFcERia05sSGhEem9hZXN0bU1VazBBTHAwVzMzOWtUbmhSOHozRmtRcHEyTllzd2hXaUZLREdwbUFYbGFTR1pjeUJOdnUydjF0ZWotYTFGNGwxYjNxVDFuYzdZb2J0THN6QXhEdGFIdHhmVGVnQlJmNmtlank2ZkJaTERCOHVYVGtMM2RlenRneGh6LTRLZF9zclctNzFGSkxQQ2ZzanlZLU9pZUxITEZaaDdMR3llX3VPMjg3enpVTUpnZEtuZkY3eGk0UEt6dnFZYTVobFB3amw3dlVEdjVRVXVqbXhtWC03SDVaekdtUFllTE9PSzFDS2tONmhwcGJXTURkWkFwS1ZMTXBVaVZUSmhBSTdVdTY4aHhkWEpNbjZwdDhyS01BZWRSUXJTSDlEOHZiX1B4Z1d0eThQaWNqc1NqTENHNUdNbEg4MEpPNnBKc2Nsb1VwYTZBTW8yN3ktNFZKeFhITE1oZDJ3VG1pQjhTaVphVE4wcVZMSXVnVnExQ25EUzFxSFBrRklJbE9IcER5aGE5aldDQ1gxYXplejNKb2VRVFBFZ2JMTTgyamxqVXdwZjVUeUUtOW95OGMtclZZd1lUcVl2Rlc0bXAySENNZ2tzTi1oSmtDTnYtVGRzaG5iT1pkOWxMWEo2SWFndUNZbElwTEZRcXNCNU5HSDU5ZlhlNTMwREJDR3hkMDNIOFYzMzNvUlluR2pXWmdFVE5ZYjF2R0pnQVIyVmpqZEZVYkQ3NklXdC1YekMwdF9wZDA0eGc5b0RnU0hBX2huQVJGYXRocFUtbGVxSUs3X2RiUE9hSVNjLTY5YWpiUDE1RC1pc29OMlFpVWpIR1dTMmc2S0hhbUx1WXhLdHhhX0x0cGl1SzRFaG9oQjduQ280b1F4RzZCdkF3cXJuU0ExWXg4WVBQY19JOU1LVExlNUNWMC1BQVRkMFN6dFZjRC1lR05YMU5zTXZRNnhjaThyUGwwMFk5czVzQXROMndsSWFDTUpMQTRuLTdUSnVYcUttOFNJaEk5ZjRGMDZUMy1pc2NCZVltcGZEQ1pMQk9EZDlXREFxU0paYU9oLXQ2NG1tdVk2d1pvWG1EWDhBWHVZWndQa3QydXlYRmhFSVhQMFpqZTliUjYxWTNVVk01QjlNWFplUkdQM1d6ZHE0UnZKSFlzSnZBZ3hmbDU0Y1JCczRjdUViZEdSYzd3cXUwRWg3X3lHbDhCWkVPMjZ5a2tac09zX0g3N3VKZ3R6enZZMzUySzFzbEtyZ0FmRXQzcXF3QkRnVXZndzcyLWdjNzJSVzY2Q1lPNjNkcnROS0FXaEkzQWFyWEpWLW9CUTBzMlI3TlE2MElHLXhjUTlocGJ1aWJtMlNZTmZDN0tsYTd2RlBaYXlyZzNmM3kxR1l5eksyUzhfajltSG1LYXk2YkhQT3ZWNTZLRUladGc2NG02WU00Y1N6blhwVHh4NERwV29STTdWSkdmYXE3clc"}
+>> DECODE:
+{
+    "sources": [
+        {
+            "file": "https://5636g.project-zenith-220.biz/c3/h1e00e76d6043835b9cc206f446a8563984a4cd132f93c0030fffd3b40dc7c81d06858a70c2d9014636b170eed451dae77dd9dab5507b1dea249d16e5cf68f083249697715c0768604e8a2a1eddff5b7dde5ae8e6fc444c8d5d82c96d476ab19ceb9520e2d7a1d3a7dd35bcc543319919/list,5b49a52e32138f5289c309be43a64868d1bfd0166088c3.m3u8"
+        }
+    ],
+    "tracks": [
+        {
+            "file": "https://5636g.megaup.cc/v3/h1e00e76d6043835b9cc206f446a8563984a4cd132f93c0030fffd3b40dc7c81d06858a70c2d9014636b170eed451dae87ad8d8bb527f1dea249d16e5cf68f0842b9bc86743047b234e83231397a71934950ebababc02598a0f918c291b36b3d1f2dd3de6ccb889ac93/thumbnails.vtt",
+            "kind": "thumbnails"
+        }
+    ],
+    "download": "https://megaup.cc/download/j4WuInGsWSyJcOLxELpJ6hHqDQ"
+}
+
+```
+
+
+
 # Github repo search
 ```
 https://api.github.com/search/repositories?q=Anime+topic%3Aandroidtv+license:apache-2.0&sort=stars&order=desc
