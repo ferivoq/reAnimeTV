@@ -3,10 +3,18 @@ const body=document.body;
 /* const _DNS="9anime.to"; */
 const __DNS=('_JSAPI' in window)?_JSAPI.dns():"animekai.to";
 const __SD=('_JSAPI' in window)?_JSAPI.getSd():1;
+
+/* Change Removed Sources */
 if (__SD==2){
   _JSAPI.setSd(1);
   _JSAPI.reloadHome();
 }
+if (__SD==4){
+  _JSAPI.setSd(3);
+  _JSAPI.reloadHome();
+}
+
+/* Source Constants */
 const __SDKAI=(__SD==1);
 const __SD3=((__SD==3) || (__SD==4))?true:false;
 const __SD5=(__SD==5);
@@ -24,13 +32,13 @@ const __SOURCE_NAME=[
 ];
 
 const __SOURCE_DOMAINS=[
-  ['animekai.to' ,'animekai.bz'], // rip
+  ['animekai.to' ,'animekai.bz'],
   ['anix.to','anix.ac','anix.vc','anixtv.to'], // rip
-  ['hianime.to','hianime.sx','hianime.mn','hianime.nz'],
-  ['aniwatchtv.to','aniwatch.se'],
+  ['hianime.to','hianime.sx','hianime.nz', 'aniwatchtv.to'],
+  ['aniwatchtv.to'],
   ['animeflix.live','animeflix.gg','animeflix.li'], // rip
-  ['kaas.to','kickassanimes.io','kaas.ro','www1.kickassanime.mx'],
-  ['api.gojo.live','api.gojotv.xyz','api.gojo.wtf'],
+  ['kaas.to','kaas.ro','kaa.mx'],
+  ['api.gojo.wtf'],
   ['www.miruro.tv']
 ];
 
@@ -83,12 +91,14 @@ function SD_CHECK_DOMAIN(sd,cb){
   var chk_url='/manifest.json';
   var chk_json='name';
   if (sd==6){
+    // animeflix
     chk_url='/api/home_data';
     chk_json='recent_update';
   }
   else if (sd==7){
-    chk_url='/';
-    chk_json='home';
+    // gojo
+    chk_url='/config';
+    chk_json='maintenance';
   }
   var res=[];
   var num=__SOURCE_DOMAINS[sm].length;
@@ -175,22 +185,28 @@ function SD_SETTINGS(n, cb){
       function(chval){
         if (chval!=null){
           var wsel=r[chval];
-          if (wsel.st!=2){
-            if (!_API.confirmDialog("Domain Warning!!",
-            "Target Domain <b>"+wsel.dn+"</b> is failed in benchmark!!!<br>"+
-            "Do you want to continue?",
-            true)){
-              return;
+          function setDomainNow(){
+            var sdomain="";
+            if (chval>0){
+              sdomain=__SOURCE_DOMAINS[nx][chval];
+            }
+            _JSAPI.storeSet(SD_CFGNAME(n),sdomain);
+            if (cb){
+              cb(__SOURCE_DOMAINS[nx][chval]);
             }
           }
-          var sdomain="";
-          if (chval>0){
-            sdomain=__SOURCE_DOMAINS[nx][chval];
+          if (wsel.st!=2){
+            _API.confirm("Domain Warning!!",
+            "Target Domain <b>"+wsel.dn+"</b> is failed in benchmark!!!<br>"+
+            "Do you want to continue?",
+            function(val){
+              if (val){
+                setDomainNow();
+              }
+            });
+            return;
           }
-          _JSAPI.storeSet(SD_CFGNAME(n),sdomain);
-          if (cb){
-            cb(__SOURCE_DOMAINS[nx][chval]);
-          }
+          setDomainNow();
           return;
         }
         if (cb){
@@ -971,7 +987,7 @@ var gojo={
   },
   cache:{},
   getAnimeId:function(url){
-    var ux=url.split('#');
+    var ux=(url+'').split('#');
     return ux[0];
   },
   getFilterOrigin:function(){
@@ -1310,15 +1326,15 @@ var gojo={
         "stream_url":{}
       };
       const eps=d.gojo.ep;
-      const covs={};
-      for (var i=0;i<dat.cov[0].data.length;i++){
-        var cvdt=dat.cov[0].data[i];
-        covs[cvdt.number]={
-          title:cvdt.title,
-          img:cvdt.img,
-          desc:cvdt.description
-        };
-      }
+      // const covs={};
+      // for (var i=0;i<dat.cov[0].data.length;i++){
+      //   var cvdt=dat.cov[0].data[i];
+      //   covs[cvdt.number]={
+      //     title:cvdt.title,
+      //     img:cvdt.img,
+      //     desc:cvdt.description
+      //   };
+      // }
       for (var i=0;i<eps[0].episodes.length;i++){
         var pp=eps[0].episodes[i];
         var oe={
@@ -1330,12 +1346,12 @@ var gojo={
           "streams":[]
         };
         
-        if (pp.number in covs){
-          var cvd=covs[pp.number];
-          oe.title=cvd.title;
-          oe.img=cvd.img;
-          oe.desc=cvd.desc;
-        }
+        // if (pp.number in covs){
+        //   var cvd=covs[pp.number];
+        //   oe.title=cvd.title;
+        //   oe.img=cvd.img;
+        //   oe.desc=cvd.desc;
+        // }
         
         var svs={};
         for (var j=0;j<eps.length;j++){
@@ -1374,18 +1390,20 @@ var gojo={
     }
 
 
-    $a("/ep-covers?id="+uri,function(r){
-      if (r.ok){
-        try{
-          dat.cov=JSON.parse(r.responseText);
-        }
-        catch(e){
-          dat.cov=null;
-        }
-      }
-      dat.x++;
-      datacb();
-    });
+    // $a("/ep-covers?id="+uri,function(r){
+    //   if (r.ok){
+    //     try{
+    //       dat.cov=JSON.parse(r.responseText);
+    //     }
+    //     catch(e){
+    //       dat.cov=null;
+    //     }
+    //   }
+    //   dat.x++;
+    //   datacb();
+    // });
+
+    dat.x++;
     gojo.getTooltip(uri,function(k){
       if (k){
         dat.tip=k;
@@ -2354,6 +2372,10 @@ const kai={
       more:null,
       n:0
     };
+    if (!id && url){
+      id=url;
+    }
+    var ttip_ttid=id;
 
     if (id in kai.caches.ttip){
       requestAnimationFrame(
@@ -2422,7 +2444,8 @@ const kai={
       
       try{
         var did=d.querySelector('[data-id]').getAttribute('data-id');
-        o.ttid=o.url=did;
+        o.ttid=o.url=ttip_ttid;
+        // o.ttid=
 
         var detailuri=d.querySelector('a.watch-btn').getAttribute('href');
         kai.req(detailuri,function(t){
@@ -4437,12 +4460,15 @@ const _API={
     if (src_ori){
       if (pb.cfg_data && pb.cfg_data.hlsproxy){
         if (
-          !__SD7 && !__SD8 &&
+          !__SD7 && !__SD8 && !__SDKAI &&
           (src_ori.indexOf("#dash")==-1)
+          && (src_ori.indexOf("megaup.cc")==-1)
+          && (src_ori.indexOf("prxy.miruro.to")==-1)
           && (src_ori.indexOf("mp4upload.com")==-1)
           && (src_ori.indexOf("netmagcdn.com")==-1)
           && (src_ori.indexOf("vidco.pro")==-1)
           && (src_ori.indexOf("#FILEMOON")==-1)){
+          // src='https://prxy.miruro.to/m3u8?url='+encodeURIComponent(src_ori);
           src='https://m3u8.justchill.workers.dev/?url='+encodeURIComponent(src_ori);
         }
         console.warn("VIDEO_SET_URL = "+src);
@@ -6454,14 +6480,15 @@ const vtt={
     'Spanish','Arabic','French','German','Italian','Russian'
   ],
   google_font_family:{
-    'allerta':'https://fonts.googleapis.com/css2?family=Allerta&display=swap',
+    'proportional':'https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
+    'itim':'https://fonts.googleapis.com/css2?family=Itim&display=swap',
     'salsa':'https://fonts.googleapis.com/css2?family=Salsa&display=swap',
     'outfit':'https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap',
     'merriweather':'https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap',
-    'philosopher':'https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&display=swap',
-    'signika':'https://fonts.googleapis.com/css2?family=Signika:wght@300..700&display=swap',
-    'exo':'https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap',
-    'merienda':'https://fonts.googleapis.com/css2?family=Merienda:wght@300..900&display=swap',
+    'cantora_one':'https://fonts.googleapis.com/css2?family=Cantora+One&display=swap',
+    'questrial':'https://fonts.googleapis.com/css2?family=Questrial&display=swap',
+    'ruluko':'https://fonts.googleapis.com/css2?family=Ruluko&display=swap',
+    'alatsi':'https://fonts.googleapis.com/css2?family=Alatsi&display=swap',
   },
   style_type:[
     'Font Type',
@@ -6485,14 +6512,14 @@ const vtt={
     [
       "Serif",
       "Proportional",
-      "Allerta",
+      "Itim",
       "Salsa",
       "Outfit",
       "Merriweather",
-      "Philosopher",
-      "Signika",
-      "Exo",
-      "Merienda"
+      "Cantora One",
+      "Questrial",
+      "Ruluko",
+      "Alatsi"
     ],
     [
       "Large",
@@ -13595,7 +13622,7 @@ const home={
       el.__last_touch=$tick()+5000;
     });
 
-    if (__SD6||pb.cfg_data.alisthomess||(__SD==2)){
+    if (__SD6||pb.cfg_data.alisthomess||(__SD==2)||__SD7){
       home.home_anilist_load();
       return;
     }
@@ -15025,7 +15052,7 @@ const home={
       if (!seldomain){
         seldomain=__SOURCE_DOMAINS[i][0];
       }
-      if ((i==4)||(i==1)) {
+      if ((i==4)||(i==1)||(i==3)) {
         /* Parental will not work on source 5 */
         continue;
       }
@@ -15380,7 +15407,7 @@ const home={
           '<c>cancel_presentation</c> Close Confirmation<span class="value">-</span>'
         );
 
-        if (_USE_TOUCH){
+        if (_TOUCH){
           home.settings.tools._s_disablegesture=$n(
             'div','',{
               action:'*disablegesture'
@@ -15741,13 +15768,13 @@ const home={
           "<c>sports_esports</c> Discord Server"
         );
 
-        home.settings.tools._s_exportcsv=$n(
-          'div','',{
-            action:'*exportcsv'
-          },
-          home.settings.about.P,
-          "<c>export_notes</c> Export CSV List"
-        );
+        // home.settings.tools._s_exportcsv=$n(
+        //   'div','',{
+        //     action:'*exportcsv'
+        //   },
+        //   home.settings.about.P,
+        //   "<c>export_notes</c> Export CSV List"
+        // );
 
         if (!_ISELECTRON && home.profiles.isadmin()){
           home.settings.tools._s_checknightly=$n(
@@ -15922,8 +15949,8 @@ const home={
       }
       else{
         home.settings.open_qrcode(
-          "Join Discord Server<br>https://discord.gg/VGtGtRedGR",
-          "https://discord.gg/VGtGtRedGR"
+          "Join Discord Server<br>https://discord.gg/xPmEnY32",
+          "https://discord.gg/xPmEnY32"
         );
       }
     },
@@ -20555,99 +20582,100 @@ query ($weekStart: Int, $weekEnd: Int, $page: Int, $perPage: Int) {
 
     // console.log("PreviewDo = "+JSON.stringify([url, img, ttid, currep, tcurr, tdur,d,arg,malid]));
     try{
-    var numep=toInt(d.ep);
-    currep=toInt(currep);
-    if (currep>numep){
-      currep=numep;
-    }
+      var numep=toInt(d.ep);
+      currep=toInt(currep);
+      if (currep>numep){
+        currep=numep;
+      }
 
-    _MAL.pop.title.innerHTML=tspecial(d.title);
-    _MAL.pop.title.setAttribute('jp',d.title_jp?d.title_jp:d.title);
+      _MAL.pop.title.innerHTML=tspecial(d.title);
+      _MAL.pop.title.setAttribute('jp',d.title_jp?d.title_jp:d.title);
 
-    _MAL.pop.img.src=$img(img);
-    _MAL.pop.menu=[
-      _MAL.pop.detail_button,
-      _MAL.pop.begin
-    ];
-    _MAL.pop.var.url=url;
-    _MAL.pop.var.ttip=ttid;
-    _MAL.pop.var.malid=malid?malid:null;
-    _MAL.pop.menusel=1;
+      _MAL.pop.img.src=$img(img);
+      _MAL.pop.menu=[
+        _MAL.pop.detail_button,
+        _MAL.pop.begin
+      ];
+      _MAL.pop.var.url=url;
+      _MAL.pop.var.ttip=ttid;
+      _MAL.pop.var.malid=malid?malid:null;
+      _MAL.pop.menusel=1;
 
-    _MAL.pop.var.title=d.title;
-    _MAL.pop.var.title_jp=d.title_jp;
-    _MAL.pop.var.img=img;
+      _MAL.pop.var.title=d.title;
+      _MAL.pop.var.title_jp=d.title_jp;
+      _MAL.pop.var.img=img;
 
-    _MAL.pop.var.play.c=tcurr;
-    _MAL.pop.var.play.d=tdur;
-    _MAL.pop.var.play.e=currep;
+      _MAL.pop.var.play.c=tcurr;
+      _MAL.pop.var.play.d=tdur;
+      _MAL.pop.var.play.e=currep;
 
-    // headimg
-    // $('malview_info').style.backgroundImage=((d&&d.logoimg)?('url('+d.logoimg+')'):'');
+      // headimg
+      // $('malview_info').style.backgroundImage=((d&&d.logoimg)?('url('+d.logoimg+')'):'');
 
-    _MAL.preview_detail(d);
+      _MAL.preview_detail(d);
 
-    _MAL.popuprating(d.rating);
+      _MAL.popuprating(d.rating);
 
-    _MAL.pop.progh.className='';
-    if (tcurr>0 && tdur>0){
-      _MAL.pop.progh.className='active';
-      var pct=(parseFloat(tcurr)/parseFloat(tdur))*100.0;
-      _MAL.pop.prog.style.width=pct+"%";
-    }
+      _MAL.pop.progh.className='';
+      if (tcurr>0 && tdur>0){
+        _MAL.pop.progh.className='active';
+        var pct=(parseFloat(tcurr)/parseFloat(tdur))*100.0;
+        _MAL.pop.prog.style.width=pct+"%";
+      }
 
-    _MAL.pop.var.resume=0;
-    _MAL.pop.var.next=0;
+      _MAL.pop.var.resume=0;
+      _MAL.pop.var.next=0;
 
-    if (currep>0){
-      _MAL.pop.menu.push(_MAL.pop.resume);
-      if (numep>currep){
-        _MAL.pop.menu.push(_MAL.pop.next);
-        _MAL.pop.next_ep.innerHTML='EP-'+(currep+1);
-        _MAL.pop.next.className='';
-        _MAL.pop.var.next=currep+1;
+      if (currep>0){
+        _MAL.pop.menu.push(_MAL.pop.resume);
+        if (numep>currep){
+          _MAL.pop.menu.push(_MAL.pop.next);
+          _MAL.pop.next_ep.innerHTML='EP-'+(currep+1);
+          _MAL.pop.next.className='';
+          _MAL.pop.var.next=currep+1;
+        }
+        else{
+          _MAL.pop.next_ep.innerHTML='';
+          _MAL.pop.next.className='disable';
+        }
+        _MAL.pop.resume_ep.innerHTML='EP-'+(currep);
+        _MAL.pop.resume.className='';
+        _MAL.pop.var.resume=currep;
+        _MAL.pop.menusel=2;
       }
       else{
-        _MAL.pop.next_ep.innerHTML='';
-        _MAL.pop.next.className='disable';
+        _MAL.pop.next_ep.innerHTML=
+        _MAL.pop.resume_ep.innerHTML='';
+        _MAL.pop.next.className=
+        _MAL.pop.resume.className='disable';
       }
-      _MAL.pop.resume_ep.innerHTML='EP-'+(currep);
-      _MAL.pop.resume.className='';
-      _MAL.pop.var.resume=currep;
-      _MAL.pop.menusel=2;
-    }
-    else{
-      _MAL.pop.next_ep.innerHTML=
-      _MAL.pop.resume_ep.innerHTML='';
-      _MAL.pop.next.className=
-      _MAL.pop.resume.className='disable';
-    }
 
-    if (arg=="ep"){
-      _MAL.pop.resume_text.innerHTML='Play Episode';
-    }
-    else{
-      _MAL.pop.resume_text.innerHTML='Resume';
-    }
+      if (arg=="ep"){
+        _MAL.pop.resume_text.innerHTML='Play Episode';
+      }
+      else{
+        _MAL.pop.resume_text.innerHTML='Resume';
+      }
 
-    _MAL.pop.var.num=numep;
-    _MAL.pop.var.ep=(currep>0)?currep:1;
-    _MAL.pop.setEp();
-    if (_MAL.pop.var.num>0){
-      _MAL.pop.menu.push(_MAL.pop.ep);
-    }
-    _MAL.popup_update();
-    _MAL.pop.mv.className='active';
-    $('popupcontainer').className='active';
+      _MAL.pop.var.num=numep;
+      _MAL.pop.var.ep=(currep>0)?currep:1;
+      _MAL.pop.setEp();
+      if (_MAL.pop.var.num>0){
+        _MAL.pop.menu.push(_MAL.pop.ep);
+      }
+      _MAL.popup_update();
+      _MAL.pop.mv.className='active';
+      $('popupcontainer').className='active';
 
-    _MAL.pop_initlist(url);
+      _MAL.pop_initlist(url);
 
-    _MAL.pop.var.ready=true;
-    _MAL.pop.var.ondetail=false;
+      _MAL.pop.var.ready=true;
+      _MAL.pop.var.ondetail=false;
 
-    _MAL.buttonRegister();
+      _MAL.buttonRegister();
 
     }catch(e){
+      console.log(e);
       console.log("PDO = "+e);
     }
   },

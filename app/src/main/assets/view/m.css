@@ -1996,31 +1996,18 @@ c.loader {
   text-align: center;
   z-index:1;
 }
-#vtt_subtitle_preview *,
-#vtt_subtitle *{
-  --text-shadow-color:#000;
-  text-shadow: 
-    -.1vw -.1vw .01vw var(--text-shadow-color),
-    0 -.1vw .01vw var(--text-shadow-color),
-    .1vw -.1vw .01vw var(--text-shadow-color),
-    .1vw 0 .01vw var(--text-shadow-color),
-    .1vw .1vw .01vw var(--text-shadow-color),
-    0 .1vw .01vw var(--text-shadow-color),
-    -.1vw .1vw .01vw var(--text-shadow-color),
-    -.1vw 0 .01vw var(--text-shadow-color),
-    0 0 .1vw #000, 0 0 .2vw #000, .1vw .1vw .4vw #000
-}
+
 #vtt_subtitle_preview .vtt_obj,
 #vtt_subtitle .vtt_obj{
   display: inline !important;
 }
 
-#vtt_subtitle .vtt_obj span:not(:last-child):first-child{
+/* #vtt_subtitle .vtt_obj span:not(:last-child):first-child{
   position:fixed;
   top:1vw;
   left:1vw;
   right:1vw;
-}
+} */
 
 .vtt_style_full_opacity .vtt_obj{
   opacity: 1;
@@ -2089,41 +2076,28 @@ c.loader {
   --text-shadow-color: #fff;
 }
 
+#vtt_subtitle_preview *,
+#vtt_subtitle *{
+  --text-shadow-color:#000;
+  
+  paint-order: stroke fill !important;
+  -webkit-text-stroke-color: var(--text-shadow-color);
+
+  -webkit-filter: drop-shadow(.1vw .1vw .05vw rgba(10,10,10,.5));
+  -webkit-text-stroke-width: .2vw;
+}
+
 .vtt_style_medium_outline *{
-  text-shadow: 
-    -.15vw -.15vw .03vw var(--text-shadow-color),
-    0 -.15vw .03vw var(--text-shadow-color),
-    .15vw -.15vw .03vw var(--text-shadow-color),
-    .15vw 0 .03vw var(--text-shadow-color),
-    .15vw .15vw .03vw var(--text-shadow-color),
-    0 .15vw .03vw var(--text-shadow-color),
-    -.15vw .15vw .03vw var(--text-shadow-color),
-    -.15vw 0 .03vw var(--text-shadow-color),
-    0 0 .1vw #000, 0 0 .2vw #000, .1vw .1vw .4vw #000 !important;
+  -webkit-filter: drop-shadow(.15vw .15vw .05vw rgba(10,10,10,.5)) !important;
+  -webkit-text-stroke-width: .4vw !important;
 }
 .vtt_style_thick_outline *{
-  text-shadow: 
-    -.2vw -.2vw .08vw var(--text-shadow-color),
-    0 -.2vw .08vw var(--text-shadow-color),
-    .2vw -.2vw .08vw var(--text-shadow-color),
-    .2vw 0 .08vw var(--text-shadow-color),
-    .2vw .2vw .08vw var(--text-shadow-color),
-    0 .2vw .08vw var(--text-shadow-color),
-    -.2vw .2vw .08vw var(--text-shadow-color),
-    -.2vw 0 .08vw var(--text-shadow-color),
-    0 0 .1vw #000, 0 0 .2vw #000, .1vw .1vw .4vw #000 !important;
+  -webkit-filter: drop-shadow(.2vw .2vw .05vw rgba(10,10,10,.5)) !important;
+  -webkit-text-stroke-width: .6vw !important;
 }
 .vtt_style_extra_thick_outline *{
-  text-shadow: 
-    -.25vw -.25vw .14vw var(--text-shadow-color),
-    0 -.25vw .14vw var(--text-shadow-color),
-    .25vw -.25vw .14vw var(--text-shadow-color),
-    .25vw 0 .14vw var(--text-shadow-color),
-    .25vw .25vw .14vw var(--text-shadow-color),
-    0 .25vw .14vw var(--text-shadow-color),
-    -.25vw .25vw .14vw var(--text-shadow-color),
-    -.25vw 0 .14vw var(--text-shadow-color),
-    0 0 .1vw #000, 0 0 .2vw #000, .1vw .1vw .4vw #000 !important;
+  -webkit-filter: drop-shadow(.25vw .25vw .05vw rgba(10,10,10,.5)) !important;
+  -webkit-text-stroke-width: .8vw !important;
 }
 
 .vtt_style_background_25 .vtt_obj{
@@ -2177,13 +2151,13 @@ c.loader {
   font-size: calc(var(--fs-30vw) + calc(var(--fs-7vw) / 3));
 }
 .vtt_style_proportional{
-  font-family: sans-serif !important;
+  font-family: "Fira Sans", sans-serif !important;
 }
 .vtt_style_serif{
   font-family: Times, serif;
 }
-.vtt_style_allerta{
-  font-family: 'Trebuchet','Trebuchet MS','Allerta', sans-serif;
+.vtt_style_itim{
+  font-family: 'Itim', sans-serif;
 }
 .vtt_style_outfit{
   font-family: 'Outfit', sans-serif;
@@ -2196,28 +2170,28 @@ c.loader {
 .vtt_style_merriweather{
   font-family: "Merriweather", serif;
 }
-.vtt_style_philosopher{
-  font-family: "Philosopher", sans-serif;
+.vtt_style_cantora_one{
+  font-family: "Cantora One", sans-serif;
   line-height: 1.1;
 }
 .vtt_style_salsa{
   font-family: "Salsa", sans-serif;
   line-height: 1.1;
 }
-.vtt_style_signika{
-  font-family: "Signika", sans-serif;
+.vtt_style_questrial{
+  font-family: "Questrial", sans-serif;
   line-height: 1.1;
 }
 .vtt_style_reddit_sans{
   font-family: "Reddit Sans", sans-serif;
   line-height: 1.1;
 }
-.vtt_style_exo{
-  font-family: "Exo", sans-serif;
+.vtt_style_ruluko{
+  font-family: "Ruluko", sans-serif;
   line-height: 1.1;
 }
-.vtt_style_merienda{
-  font-family: "Merienda", cursive, sans-serif;
+.vtt_style_alatsi{
+  font-family: "Alatsi", cursive, sans-serif;
   line-height: 1.2;
 }
 
