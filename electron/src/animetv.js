@@ -33,6 +33,12 @@ if (process.platform === 'win32'){
 
 const common = require("./libs/common.js");
 const intercept = require("./libs/intercept.js");
+const updater = require("./libs/updater.js");
+
+/* check for update */
+// if (updater.update()){
+//   return;
+// }
 
 /* ignore connection limit on source domains */
 app.commandLine.appendSwitch('ignore-connections-limit', common.dns.join(", "));
@@ -95,6 +101,7 @@ const main={
       ipcMain.handle('config-save', main.handlerConfigSave);
       ipcMain.handle('vars-save', main.handlerVarsSave);
       ipcMain.handle('intent-start', main.handlerIntent);
+      ipcMain.handle('download-update', main.handlerUpdateDownload);
       ipcMain.handle('set-url', (e,d)=>{
         if (d!=''){
           main.win.loadURL(d);
@@ -129,6 +136,16 @@ const main={
   },
   handlerIntent(e,d){
     shell.openExternal(d);
+  },
+  handlerUpdateDownload(e,d){
+    if (process.platform !== "darwin"){
+      updater.updateDownload(d,function(v){
+        if (v){
+          console.log(v);
+          updater.update(v.save);
+        }
+      });
+    }
   },
   handlerVarsLoad(e,d){
     e.returnValue = main.vars;

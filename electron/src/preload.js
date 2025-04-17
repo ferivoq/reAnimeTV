@@ -27,6 +27,7 @@ const CryptoJS = require("crypto-js");
 
 /* Versions */
 var versions;
+var isOnDownloadUpdate = false;
 try{
   versions=require("./version.js");
 }catch(e){
@@ -165,8 +166,12 @@ const api={
   getVersion(type){
     if (type==0)
       return versions.version;
-    else if (type==2)
+    else if (type==2){
+      if (versions.code){
+        return versions.code;
+      }
       return "500";
+    }
     return versions.build+"/"+os.platform()+"-"+os.arch();
   },
 
@@ -198,8 +203,12 @@ const api={
   /* android will not implemented */
   getSysHeight(nav){ return 0 },
   haveMic(checkSpeech){ return false },
-  installApk(url,isNightly){},
-  isOnUpdate(){ return true },
+  installApk(url,isNightly){ 
+    console.log("UPDATE URL: "+url);
+    isOnDownloadUpdate=true;
+    invoke('download-update',url);
+  },
+  isOnUpdate(){ return isOnDownloadUpdate },
   showIme(show){},
   getArg(name){ return ""; },
   clearArg(){},

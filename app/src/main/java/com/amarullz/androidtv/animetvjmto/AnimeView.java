@@ -719,6 +719,10 @@ import javax.crypto.spec.SecretKeySpec;
           settings.put("Origin", "https://" + Conf.STREAM_DOMAIN1);
           settings.put("Referer", "https://" + Conf.STREAM_DOMAIN1+"/");
         }
+        else if (Conf.SOURCE_DOMAIN==3||Conf.SOURCE_DOMAIN==4) {
+          settings.put("Origin", "https://" + Conf.STREAM_DOMAIN3);
+          settings.put("Referer", "https://" + Conf.STREAM_DOMAIN3+"/");
+        }
         else{
           if (host.contains(Conf.STREAM_DOMAIN1)){
             settings.put("Origin", "https://" + Conf.STREAM_DOMAIN1);
@@ -1970,7 +1974,7 @@ import javax.crypto.spec.SecretKeySpec;
     public void setLandscape(boolean stat){
       activity.runOnUiThread(()->{
         if (stat){
-          activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+          activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         else{
           activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
