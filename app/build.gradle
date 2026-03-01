@@ -2,6 +2,13 @@ plugins {
     id 'com.android.application'
 }
 
+tasks.register('buildView', Exec) {
+    commandLine 'node', 'app/src/main/assets/view/build-view.js'
+    workingDir project.rootProject.projectDir
+}
+
+tasks.named('preBuild').configure { dependsOn buildView }
+
 android {
     namespace 'com.amarullz.androidtv.animetvjmto'
     compileSdk 34
@@ -11,7 +18,7 @@ android {
         minSdk 22
         targetSdk 34
         versionCode 590
-        versionName "5.9.6-Nightly"
+        versionName "5.9.7-Nightly"
 
         // Automatic Build Version
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"

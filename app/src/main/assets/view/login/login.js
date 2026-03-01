@@ -72,8 +72,8 @@ document.addEventListener('keydown', function (e) {
 
 const login = {
     default_user:null,
-    ppic_base:'https://raw.githubusercontent.com/amarullz/AnimeTV/master/tools/ppic/',
-    wallpaper_base:'https://raw.githubusercontent.com/amarullz/AnimeTV/master/tools/wallpaper/',
+    ppic_base:'https://raw.githubusercontent.com/HiroDane/AnimeTV/master/tools/ppic/',
+    wallpaper_base:'https://raw.githubusercontent.com/HiroDane/AnimeTV/master/tools/wallpaper/',
     dynamic_wallpaper: 2,
     h: $('animetv'),
     users: [],
@@ -484,6 +484,7 @@ const login = {
         _JSAPI.profileSetPrefix(prefix);
         var sdval = parseInt(_JSAPI.storeGet(prefix+"sd","1"));
         sdval=isNaN(sdval)?1:sdval;
+        if (sdval>2) sdval=1; /* migrate removed sources */
         _JSAPI.setSd(sdval);
         setTimeout(function(){
             _JSAPI.reloadHome();

@@ -384,30 +384,6 @@ import javax.net.ssl.HttpsURLConnection;
 
         transferInitializing(dataSpec);
 
-        if (Conf.SOURCE_DOMAIN==6) {
-            try {
-                URL url = new URL(dataSpec.uri.toString());
-                if (url.getRef()!=null && url.getRef().startsWith("DAT=")){
-                    String b64=url.getRef().substring(4);
-                    if (b64.indexOf("#")>0){
-                        b64=b64.substring(0,b64.indexOf("#"));
-                    }
-                    byte[] txtVal = Base64.decode(b64,Base64.DEFAULT);
-                    inputStream = new ByteArrayInputStream(txtVal);
-                    bytesToRead = dataSpec.length; // txtVal.length;
-                    opened = false;
-                    this.connection=null;
-                    noConnUri=Uri.parse(url.toString());
-                    noConnResponseCode=200;
-                    Log.d("ATVLOG","Source6 Direct M3u8: ("+bytesToRead+")\n"+
-                        new String(txtVal, StandardCharsets.UTF_8));
-                    return bytesToRead;
-                }
-            } catch (Exception e) {
-                Log.d("ATVLOG","Source6 Direct M3u8 ERR: "+e);
-            }
-        }
-
         String responseMessage;
         HttpURLConnection connection;
         try {
@@ -567,13 +543,6 @@ import javax.net.ssl.HttpsURLConnection;
     private HttpURLConnection makeConnection(DataSpec dataSpec) throws IOException {
         URL url = new URL(dataSpec.uri.toString());
 
-        if (Conf.SOURCE_DOMAIN==5) {
-            // source 5 gogocden hack
-            if (url.getHost().contains("gogocden.site") && (url.getQuery()==null) && sd5query.contains("?")){
-                String addurl=sd5query.substring(sd5query.indexOf("?"));
-                url = new URL(dataSpec.uri.toString()+addurl);
-            }
-        }
 //        Log.d("VIDEOSOURCE", "REQ-URL: "+url);
 
         @DataSpec.HttpMethod int httpMethod = dataSpec.httpMethod;
@@ -647,8 +616,6 @@ import javax.net.ssl.HttpsURLConnection;
                 PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
                 HttpDataSourceException.TYPE_OPEN);
     }
-
-    public static String sd5query="";
 
     /**
      * Configures a connection and opens it.

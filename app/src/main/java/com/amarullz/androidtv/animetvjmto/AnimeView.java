@@ -505,6 +505,11 @@ import javax.crypto.spec.SecretKeySpec;
       }
 
       @Override
+      public boolean onConsoleMessage(android.webkit.ConsoleMessage cm) {
+        Log.d("ATV-Console", cm.message() + " -- " + cm.sourceId() + ":" + cm.lineNumber());
+        return false;
+      }
+      @Override
       public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
         if (listPrompt(message, new ChromePromptCallback() {
           @Override
@@ -705,21 +710,16 @@ import javax.crypto.spec.SecretKeySpec;
     }
     setVideoSize(0,0);
     videoDataSourceFactory= (s, transferListener) -> {
-      AnimeDataSource.sd5query="";
       Map<String, String> settings = new HashMap();
       try{
         URL vurl=new URL(videoStatCurrentUrl);
         String host=vurl.getHost();
 
-        if (Conf.SOURCE_DOMAIN==5) {
-          AnimeDataSource.sd5query=videoStatCurrentUrl;
-          settings.put("Origin", "https://" + Conf.SOURCE_DOMAIN5_API);
-        }
-        else if (Conf.SOURCE_DOMAIN==1) {
+        if (Conf.SOURCE_DOMAIN==1) {
           settings.put("Origin", "https://" + Conf.STREAM_DOMAIN1);
           settings.put("Referer", "https://" + Conf.STREAM_DOMAIN1+"/");
         }
-        else if (Conf.SOURCE_DOMAIN==3||Conf.SOURCE_DOMAIN==4) {
+        else if (Conf.SOURCE_DOMAIN==2) {
           settings.put("Origin", "https://" + Conf.STREAM_DOMAIN3);
           settings.put("Referer", "https://" + Conf.STREAM_DOMAIN3+"/");
         }
@@ -1084,8 +1084,11 @@ import javax.crypto.spec.SecretKeySpec;
         }
         if (isPost){
           if (isPostBody){
-            http.setMethod(method,bodyData,request.getRequestHeaders().get(
-                "Content-Type"));
+            String contentType = request.getRequestHeaders().get("Content-Type");
+            if (contentType == null && postType != null) {
+              contentType = postType;
+            }
+            http.setMethod(method,bodyData,contentType);
           }
           else {
             http.setMethod(method,queryData,
@@ -1160,30 +1163,6 @@ import javax.crypto.spec.SecretKeySpec;
         return res;
       }
       return aApi.defaultRequest(view,request);
-    }
-    else if (host.equals(Conf.SOURCE_DOMAIN5_API)){
-      try {
-        AnimeApi.Http http=new AnimeApi.Http(url);
-        http.addHeader("Referer", "https://"+Conf.SOURCE_DOMAIN5_API);
-        http.addHeader("Origin", "https://"+Conf.SOURCE_DOMAIN5_API);
-        for (Map.Entry<String, String> entry :
-            request.getRequestHeaders().entrySet()) {
-          String k=entry.getKey();
-          boolean sent= k.equalsIgnoreCase("origin") ||
-              k.equalsIgnoreCase("referer") ||
-              k.equalsIgnoreCase("X-Org-Prox") ||
-              k.equalsIgnoreCase("X-Ref-Prox");
-          if (!sent) {
-            http.addHeader(k, entry.getValue());
-          }
-        }
-        http.execute();
-        InputStream stream = new ByteArrayInputStream(http.body.toByteArray());
-        return new WebResourceResponse(http.ctype[0], http.ctype[1], stream);
-      } catch (Exception e) {
-        Log.e(_TAG, "AFLIX-API ERR =" + url, e);
-      }
-      return super.shouldInterceptRequest(view, request);
     }
     else if (host.contains(Conf.STREAM_DOMAIN)
             ||host.contains(Conf.STREAM_DOMAIN1)
@@ -1288,7 +1267,7 @@ import javax.crypto.spec.SecretKeySpec;
       /* BLOCK DNS */
       return aApi.badRequest;
     }
-    else if (Conf.SOURCE_DOMAIN==3||Conf.SOURCE_DOMAIN==4){
+    else if (Conf.SOURCE_DOMAIN==2){
       if (path.endsWith("/master.m3u8")) {
         Log.d(_TAG, "GOT-MASTER-M3U8 = " + url);
         String m3u8data="{}";
@@ -1434,6 +1413,11 @@ import javax.crypto.spec.SecretKeySpec;
           break;
       }
       return "";
+    }
+
+    @JavascriptInterface
+    public String getUserAgent(){
+      return Conf.USER_AGENT;
     }
 
     @JavascriptInterface
@@ -1723,11 +1707,6 @@ import javax.crypto.spec.SecretKeySpec;
     @JavascriptInterface
     public String dns(){
       return Conf.getDomain();
-    }
-
-    @JavascriptInterface
-    public String flix_dns(){
-      return Conf.SOURCE_DOMAIN5_API;
     }
 
     @JavascriptInterface

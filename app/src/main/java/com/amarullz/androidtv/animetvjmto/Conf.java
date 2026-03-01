@@ -1,16 +1,13 @@
 package com.amarullz.androidtv.animetvjmto;
 
 public class Conf {
-  public static String DOMAIN = "animekai.to";
+  public static String DOMAIN = "anikai.to";
+  /* Source 1=Anikai, 2=Hianime. Keep array indices: [0]=default, [1]=Anikai, [2]=Hianime */
   public static String[] SOURCE_DOMAINS={
-      "animekai.to", /* default */
-      "animekai.to",
-      "anix.to",
-      "hianime.to",
-      "aniwatchtv.to",
-      "animeflix.live", "kaa.mx", "api.gojo.live", "www.miruro.tv"
+      "anikai.to", /* default */
+      "anikai.to",
+      "hianime.to"
   };
-  public static String SOURCE_DOMAIN5_API = "api.animeflix.dev";
   public static int SOURCE_DOMAIN = 1;
 
   public static void updateSource(int num){
