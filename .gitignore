@@ -23,3 +23,5 @@ electron/src/version.js
 keystore/animetv.keystore
 keystore/keystore-info.md
 keystore/keystore.base64
+release.keystore.asc
+release.keystore.asc.base64

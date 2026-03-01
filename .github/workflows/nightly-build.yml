@@ -179,7 +179,7 @@ jobs:
 
             - name: Prepare Gradle
               run: |
-                echo "${{ secrets.RELEASE_KEYSTORE }}" > release.keystore.asc
+                echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 -d > release.keystore.asc
                 gpg -d --passphrase "${{ secrets.RELEASE_PASSWORD }}" --batch release.keystore.asc > keystore/debug.keystore
                 chmod +x ./gradlew
             
