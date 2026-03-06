@@ -1,4 +1,14 @@
-# AnimeTV
+# reAnimeTV
+
+reAnimeTV is a continuation of the original AnimeTV app made by amarullz. This project focuses on maintaining a working and usable version of the app. Several providers from the original project have become outdated or broken over time, so in this fork, non functional providers have been removed and the AnimeKai provider has been fixed and is currently the only working provider.
+
+Some features are still incomplete. AniList profile integration is not functioning yet, and there are known issues with the Linux and Windows builds. These problems will be addressed in future updates.
+For now, development is primarily focused on keeping streaming providers up to date and functional.
+
+Prebuilt binaries can be found in the **Releases** section or in the **Actions** tab.
+
+---
+# The original readme
 
 AnimeTV is cross-platform anime streaming application. It supports AndroidTV, GoogleTV, FireTV, Android Smartphone, Windows (x64 & arm64), Linux (portable, deb, rpm) and MacOS (no binary).
 
