@@ -4,7 +4,7 @@ const __DNS=('_JSAPI' in window)?_JSAPI.dns():"anikai.to";
 const __SD=('_JSAPI' in window)?_JSAPI.getSd():1;
 
 /* Migrate removed sources (Anix, Aniwatch, Animeflix, KickAss, Gojo, Miruro) */
-if (__SD>2){
+if (__SD>3){
   _JSAPI.setSd(1);
   _JSAPI.reloadHome();
 }
@@ -12,15 +12,17 @@ if (__SD>2){
 /*
  * SOURCES CONFIG - Add new sources here, update Conf.java & electron/common.js dns.
  */
-const __SOURCE_NAME=['AnimeKAI','Hianime'];
+const __SOURCE_NAME=['AnimeKAI','Hianime','OniAnime'];
 const __SOURCE_DOMAINS=[
   ['anikai.to','animekai.to','animekai.bz'],
-  ['hianime.to','hianime.sx','hianime.nz','aniwatchtv.to','hianime.bz']
+  ['hianime.to','hianime.sx','hianime.nz','aniwatchtv.to','hianime.bz'],
+  ['onianime.hu']
 ];
 
 /* Source Constants */
 const __SDKAI=(__SD==1);
 const __SD2=(__SD==2); /* Hianime */
+const __SDONI=(__SD==3); /* OniAnime */
 const __SD5=false;const __SD6=false;const __SD7=false;const __SD8=false; /* removed */
 /* is touch screen */
 var _USE_TOUCH=true;
@@ -70,11 +72,11 @@ const __SD_NAME = __SD+". "+(__SOURCE_NAME[__SD-1]);
 var __SD_DOMAIN = "";
 function SD_CHECK_DOMAIN(sd,cb){
   var sm=sd-1;
-  if (sm<0 || sd>2){
+  if (sm<0 || sd>__SOURCE_DOMAINS.length){
     return false;
   }
-  var chk_url='/manifest.json';
-  var chk_json='name';
+  var chk_url=(sd==3)?'/api/catalog?page=1&sort_by=popularity':'/manifest.json';
+  var chk_json=(sd==3)?'animes':'name';
   var res=[];
   var num=__SOURCE_DOMAINS[sm].length;
   function do_test(dm,u,c,i,tstart){

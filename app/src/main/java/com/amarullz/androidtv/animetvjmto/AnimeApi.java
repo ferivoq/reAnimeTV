@@ -264,8 +264,8 @@ public class AnimeApi extends WebViewClient {
       }catch(Exception ignored){}
     }
     int savedSd = pref.getInt("source-domain",Conf.SOURCE_DOMAIN);
-    /* Migrate removed sources: 3,4->Hianime(2); 5,6,7,8->Anikai(1) */
-    if (savedSd == 3 || savedSd == 4) savedSd = 2;
+    /* Migrate removed sources: 4->Hianime(2); 5,6,7,8->Anikai(1) */
+    if (savedSd == 4) savedSd = 2;
     else if (savedSd >= 5) savedSd = 1;
     Conf.SOURCE_DOMAIN = savedSd;
     Conf.CACHE_SIZE_MB=pref.getInt("cache-size",Conf.CACHE_SIZE_MB);

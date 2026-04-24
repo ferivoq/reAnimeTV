@@ -14,6 +14,7 @@ const files = [
   'sources/config.js',
   'sources/animekai.js',
   'sources/hianime.js',
+  'sources/onianime.js',
   'core.js'
 ];
 

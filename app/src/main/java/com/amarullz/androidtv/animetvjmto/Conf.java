@@ -2,11 +2,12 @@ package com.amarullz.androidtv.animetvjmto;
 
 public class Conf {
   public static String DOMAIN = "anikai.to";
-  /* Source 1=Anikai, 2=Hianime. Keep array indices: [0]=default, [1]=Anikai, [2]=Hianime */
+  /* Source 1=Anikai, 2=Hianime, 3=OniAnime. Keep array indices: [0]=default */
   public static String[] SOURCE_DOMAINS={
       "anikai.to", /* default */
       "anikai.to",
-      "hianime.to"
+      "hianime.to",
+      "onianime.hu"
   };
   public static int SOURCE_DOMAIN = 1;
 

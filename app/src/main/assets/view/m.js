@@ -4,7 +4,7 @@ const __DNS=('_JSAPI' in window)?_JSAPI.dns():"anikai.to";
 const __SD=('_JSAPI' in window)?_JSAPI.getSd():1;
 
 /* Migrate removed sources (Anix, Aniwatch, Animeflix, KickAss, Gojo, Miruro) */
-if (__SD>2){
+if (__SD>3){
   _JSAPI.setSd(1);
   _JSAPI.reloadHome();
 }
@@ -12,15 +12,17 @@ if (__SD>2){
 /*
  * SOURCES CONFIG - Add new sources here, update Conf.java & electron/common.js dns.
  */
-const __SOURCE_NAME=['AnimeKAI','Hianime'];
+const __SOURCE_NAME=['AnimeKAI','Hianime','OniAnime'];
 const __SOURCE_DOMAINS=[
   ['anikai.to','animekai.to','animekai.bz'],
-  ['hianime.to','hianime.sx','hianime.nz','aniwatchtv.to','hianime.bz']
+  ['hianime.to','hianime.sx','hianime.nz','aniwatchtv.to','hianime.bz'],
+  ['onianime.hu']
 ];
 
 /* Source Constants */
 const __SDKAI=(__SD==1);
 const __SD2=(__SD==2); /* Hianime */
+const __SDONI=(__SD==3); /* OniAnime */
 const __SD5=false;const __SD6=false;const __SD7=false;const __SD8=false; /* removed */
 /* is touch screen */
 var _USE_TOUCH=true;
@@ -70,11 +72,11 @@ const __SD_NAME = __SD+". "+(__SOURCE_NAME[__SD-1]);
 var __SD_DOMAIN = "";
 function SD_CHECK_DOMAIN(sd,cb){
   var sm=sd-1;
-  if (sm<0 || sd>2){
+  if (sm<0 || sd>__SOURCE_DOMAINS.length){
     return false;
   }
-  var chk_url='/manifest.json';
-  var chk_json='name';
+  var chk_url=(sd==3)?'/api/catalog?page=1&sort_by=popularity':'/manifest.json';
+  var chk_json=(sd==3)?'animes':'name';
   var res=[];
   var num=__SOURCE_DOMAINS[sm].length;
   function do_test(dm,u,c,i,tstart){
@@ -2231,6 +2233,266 @@ window.hianimeapi=__HIANIME;
 
 /* === next file === */
 
+/**************************** ONIANIME ***************************/
+const __ONIANIME = {
+  ns: 'https://onianime.hu',
+  server: 'karks',
+  headers:function(){
+    return {
+      'Accept':'application/json, text/plain, */*',
+      'Accept-Language':'en-US,en;q=0.9',
+      'Referer':__ONIANIME.ns+'/home',
+      'X-Org-Prox':__ONIANIME.ns,
+      'X-Ref-Prox':__ONIANIME.ns+'/home'
+    };
+  },
+  api:function(uri){
+    return __ONIANIME.ns+uri;
+  },
+  req:function(uri, cb){
+    return $ap(__ONIANIME.api(uri), cb, __ONIANIME.headers());
+  },
+  parseStatus:function(status){
+    status=(status||'').toLowerCase();
+    if (status=='fut') return 'ONGOING';
+    if (status=='befejezett') return 'COMPLETED';
+    return status?status.toUpperCase():'';
+  },
+  animeId:function(url){
+    var clean=(url+'').split('#')[0].split('?')[0].split('/');
+    return clean[clean.length-1];
+  },
+  epNumber:function(url){
+    var hash=(url+'').split('#');
+    if (hash.length>1 && hash[1]) return toInt(hash[1]);
+    return 1;
+  },
+  toListItem:function(a){
+    var d={};
+    d.url='/anime/'+a.id;
+    d.tip=d.url;
+    d.title=a.name||a.eng_name||'';
+    d.title_jp=a.eng_name||'';
+    d.poster=a.image||'';
+    d.synopsis=a.description||'';
+    d.type=a.type||'';
+    d.status=__ONIANIME.parseStatus(a.status);
+    d.epsub=d.ep=a.part_count?(''+a.part_count):'';
+    d.eptotal=d.ep;
+    if (a.agerestriction && a.agerestriction>=18){
+      d.adult=true;
+    }
+    if (a.release_year){
+      d.duration=''+a.release_year;
+    }
+    return d;
+  },
+  parseCatalog:function(v){
+    try{
+      var j=(typeof v=='string')?JSON.parse(v):v;
+      var animes=j.animes||[];
+      var rd=[];
+      for (var i=0;i<animes.length;i++){
+        rd.push(__ONIANIME.toListItem(animes[i]));
+      }
+      return rd;
+    }catch(e){
+      console.log('OniAnime catalog parse error: '+e);
+    }
+    return [];
+  },
+  getTooltip:function(id, cb, url, isview){
+    var animeId=__ONIANIME.animeId(id||url);
+    __ONIANIME.req('/api/anime/'+enc(animeId)+'/info', function(r){
+      if (!r.ok){
+        cb(null);
+        return;
+      }
+      try{
+        var info=JSON.parse(r.responseText);
+        var genres=[];
+        var tagNames=info.tags||[];
+        for (var i=0;i<tagNames.length;i++){
+          genres.push({name:tagNames[i],val:null});
+        }
+        var o={
+          title:info.name||info.eng_name||'',
+          title_jp:info.eng_name||'',
+          synopsis:info.description||'',
+          genres:genres,
+          genre:tagNames.join(', '),
+          status:__ONIANIME.parseStatus(info.status),
+          rating:'',
+          quality:null,
+          ep:0,
+          ttid:'/anime/'+info.id,
+          url:'/anime/'+info.id,
+          poster:info.image||'',
+          banner:info.image||'',
+          anilistId:info.anilist||null,
+          author:info.studio||info.translator||''
+        };
+        if (isview){
+          o.seasons=[];
+          o.related=[];
+          o.recs=[];
+          o.info={
+            type:{val:(info.type||'').toLowerCase(),name:info.type||''},
+            rating:o.rating,
+            quality:o.quality
+          };
+          o.numep=o.ep;
+          delete o.ep;
+          o.stp=0;
+          o.streamtype='';
+        }
+        cb(o);
+      }catch(e){
+        console.log('OniAnime tooltip parse error: '+e);
+        cb(null);
+      }
+    });
+  },
+  getView:function(url, cb){
+    var uid=++_API.viewid;
+    var animeId=__ONIANIME.animeId(url);
+    var getEp=__ONIANIME.epNumber(url);
+    var out={
+      status:true,
+      title:'-',
+      title_jp:'-',
+      synopsis:'',
+      stream_url:{hard:'',soft:'',dub:''},
+      stream_vurl:'',
+      poster:'',
+      banner:null,
+      url:'/anime/'+animeId,
+      skip:[],
+      ep:[],
+      related:[],
+      genres:[],
+      seasons:[],
+      recs:[],
+      info:{type:null,rating:null,quality:null},
+      active_ep:null,
+      active_ep_index:0,
+      ep_streamdata:null
+    };
+    var pending=2;
+    var failed=false;
+    function done(){
+      if (failed || --pending>0) return;
+      if (!out.ep.length){
+        cb({status:false}, uid);
+        return;
+      }
+      var active=out.ep[out.active_ep_index]||out.ep[0];
+      out.active_ep=active.ep;
+      __ONIANIME.req(
+        '/api/anime/'+enc(animeId)+'/parts?episode='+enc(active.ep)+'&type=sub&server='+enc(__ONIANIME.server),
+        function(r){
+          if (!r.ok){
+            cb({status:false}, uid);
+            return;
+          }
+          try{
+            out.ep_streamdata=JSON.parse(r.responseText);
+            out.stream_vurl='';
+            cb(out, uid);
+          }catch(e){
+            cb({status:false}, uid);
+          }
+        }
+      );
+    }
+    __ONIANIME.getTooltip('/anime/'+animeId,function(tip){
+      if (!tip){
+        failed=true;
+        cb({status:false}, uid);
+        return;
+      }
+      out.title=tip.title;
+      out.title_jp=tip.title_jp;
+      out.synopsis=tip.synopsis;
+      out.poster=tip.poster;
+      out.banner=tip.banner;
+      out.genres=tip.genres;
+      out.info=tip.info||out.info;
+      out.anilistId=tip.anilistId;
+      done();
+    },url,1);
+    __ONIANIME.req('/api/anime/'+enc(animeId)+'/episodes', function(r){
+      if (!r.ok){
+        failed=true;
+        cb({status:false}, uid);
+        return;
+      }
+      try{
+        var j=JSON.parse(r.responseText);
+        var eps=j.episodes||[];
+        eps.sort(function(a,b){ return a.ep-b.ep; });
+        for (var i=0;i<eps.length;i++){
+          var ep=eps[i];
+          var s={
+            ep:ep.ep,
+            url:'/anime/'+animeId+'#'+ep.ep,
+            active:(getEp==ep.ep),
+            filler:false,
+            ep_id:ep.ep,
+            title:ep.title||('Episode '+ep.ep),
+            synopsis:ep.description||'',
+            poster:ep.thumbnail||''
+          };
+          if (s.active){
+            out.active_ep=s.ep;
+            out.active_ep_index=i;
+          }
+          out.ep.push(s);
+        }
+        if (!out.active_ep && out.ep.length){
+          out.ep[0].active=true;
+          out.active_ep=out.ep[0].ep;
+          out.active_ep_index=0;
+        }
+        if (j.meta){
+          out.title=j.meta.name||out.title;
+          out.title_jp=j.meta.eng_name||out.title_jp;
+          out.poster=j.meta.image||out.poster;
+          out.banner=out.poster;
+        }
+        done();
+      }catch(e){
+        failed=true;
+        cb({status:false}, uid);
+      }
+    });
+    return uid;
+  },
+  loadVideo:function(data, cb){
+    try{
+      var sources=(data.ep_streamdata&&data.ep_streamdata.sources)||[];
+      if (!sources.length){
+        cb(null);
+        return;
+      }
+      sources.sort(function(a,b){
+        return toInt((b.label||'').replace(/\D/g,''))-toInt((a.label||'').replace(/\D/g,''));
+      });
+      cb({
+        sources:sources,
+        url:sources[0].src
+      });
+    }catch(e){
+      cb(null);
+    }
+  }
+};
+window.onianime=__ONIANIME;
+/* onianime.js end */
+
+
+/* === next file === */
+
 /* Key event handler */
 window._KEYEV=function(key, evSource){
   if (!evSource) evSource=0;
@@ -2677,6 +2939,9 @@ const _API={
     else if (__SDKAI){
       return url;
     }
+    else if (__SDONI){
+      return onianime.animeId(url);
+    }
     else{
       var url_parse=url.split('/');
       if (url_parse.length>=5){
@@ -2745,7 +3010,16 @@ const _API={
       sort: 1.Relevant, 2.RecentUpdate
     */
     var uri='';
-    if (!__SD2){
+    if (__SDONI){
+      if (q){
+        uri='/api/animes/search?search='+enc(q.substring(0,100).trim());
+      }
+      else{
+        uri='/api/catalog?sort_by=latest_uploads&page='+(page?page:1);
+      }
+      console.log('FILTER: '+uri);
+    }
+    else if (!__SD2){
       var qv=[];
       
       qv.push('keyword='+enc(q));
@@ -3130,6 +3404,9 @@ const _API={
   getView:function(url, f){
     if (__SD2){
       return _API.getViewHi(url,f);
+    }
+    else if (__SDONI){
+      return onianime.getView(url,f);
     }
     else if (__SDKAI){
       return kai.getView(url,f);
@@ -3519,6 +3796,9 @@ const _API={
     console.log("GET TOOLTIP = "+id);
     if (__SDKAI){
       return kai.getTooltip(id, cb, url, 0);
+    }
+    if (__SDONI){
+      return onianime.getTooltip(id, cb, url, isview);
     }
 
     if (!id && url){
@@ -6837,6 +7117,22 @@ const pb={
           else{
             pb.init_video_vidcloud();
           }
+        });
+      }
+      else if (__SDONI){
+        onianime.loadVideo(pb.data,function(v){
+          if (!v){
+            pb.playback_error(
+              'PLAYBACK ERROR',
+              "Loading video from OniAnime failed."
+            );
+            return;
+          }
+          vtt.clear();
+          pb.subtitles=[];
+          pb.updateStreamTypeInfo();
+          pb.init_video_mp4upload(v.url);
+          pb.cfg_update_el();
         });
       }
       else if (__SD7){
@@ -10432,6 +10728,9 @@ const home={
       // Hi Anime
       rd=home.hi_parse(v);
     }
+    else if (__SDONI){
+      rd=onianime.parseCatalog(v);
+    }
     else if (__SD7){
       // gojo
       rd=gojo.recent_parse(v);
@@ -10604,7 +10903,7 @@ const home={
         }
       }
       if (home.withspre){
-        var PGSZ=(__SD2||__SDKAI)?60:30;
+        var PGSZ=(__SD2||__SDKAI||__SDONI)?60:30;
         while (g.P.childElementCount>PGSZ){
           g._spre.push(g.P.firstElementChild.nextElementSibling);
           g.P.removeChild(g.P.firstElementChild.nextElementSibling);
@@ -10634,6 +10933,9 @@ const home={
       if (r.ok){
         try{
           if (__SD2){
+            home.recent_parse(g,r.responseText);
+          }
+          else if (__SDONI){
             home.recent_parse(g,r.responseText);
           }
           else if (__SDKAI){
@@ -10753,6 +11055,9 @@ const home={
       // home.home_slide._midx=(__SD==2)?2:2.5;
       if (__SDKAI){
         td=kai.parseHomeSlideshow(h);
+      }
+      else if (__SDONI){
+        td=[];
       }
       else if (__SD2){
         // hianime
@@ -11761,6 +12066,12 @@ const home={
         ["dub","/dubbed-anime?page=", "Latest Dub", true],
         ["top","/top-airing?page=", "Top Airing", true],
         ["movies","/movie?page=", "Movies", false]
+      ];
+    }
+    else if (__SDONI){
+      homepage=[
+        ["recent","/api/catalog?sort_by=latest_uploads&page=", "Recently Updated", true],
+        ["popular","/api/catalog?sort_by=popularity&page=", "Popular", true]
       ];
     }
     else if (__SD5){
@@ -13824,6 +14135,9 @@ const home={
       if (__SD2){
         rd=home.hi_parse(v);
       }
+      else if (__SDONI){
+        rd=onianime.parseCatalog(v);
+      }
       else if (__SD5){
         rd=home.flix_parse(v);
       }
@@ -14955,6 +15269,9 @@ const home={
       }
       else if (__SD2){
         genrelist=_API.genres_hi;
+      }
+      else if (__SDONI){
+        genrelist={};
       }
       else if (__SD6){
         genrelist=kaas.genres;
@@ -18092,7 +18409,7 @@ query ($weekStart: Int, $weekEnd: Int, $page: Int, $perPage: Int) {
         epsel=_MAL.pop.var.ep;
       }
 
-      openurl+=(__SDKAI||__SD2||__SD5||__SD6||__SD7||__SD8)?('#'+epsel):('/ep-'+epsel);
+      openurl+=(__SDKAI||__SD2||__SDONI||__SD5||__SD6||__SD7||__SD8)?('#'+epsel):('/ep-'+epsel);
 
       console.log("MAL Open Anime = "+openurl);
       _MAL.popup_close();

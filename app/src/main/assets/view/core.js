@@ -444,6 +444,9 @@ const _API={
     else if (__SDKAI){
       return url;
     }
+    else if (__SDONI){
+      return onianime.animeId(url);
+    }
     else{
       var url_parse=url.split('/');
       if (url_parse.length>=5){
@@ -512,7 +515,16 @@ const _API={
       sort: 1.Relevant, 2.RecentUpdate
     */
     var uri='';
-    if (!__SD2){
+    if (__SDONI){
+      if (q){
+        uri='/api/animes/search?search='+enc(q.substring(0,100).trim());
+      }
+      else{
+        uri='/api/catalog?sort_by=latest_uploads&page='+(page?page:1);
+      }
+      console.log('FILTER: '+uri);
+    }
+    else if (!__SD2){
       var qv=[];
       
       qv.push('keyword='+enc(q));
@@ -897,6 +909,9 @@ const _API={
   getView:function(url, f){
     if (__SD2){
       return _API.getViewHi(url,f);
+    }
+    else if (__SDONI){
+      return onianime.getView(url,f);
     }
     else if (__SDKAI){
       return kai.getView(url,f);
@@ -1286,6 +1301,9 @@ const _API={
     console.log("GET TOOLTIP = "+id);
     if (__SDKAI){
       return kai.getTooltip(id, cb, url, 0);
+    }
+    if (__SDONI){
+      return onianime.getTooltip(id, cb, url, isview);
     }
 
     if (!id && url){
@@ -4604,6 +4622,22 @@ const pb={
           else{
             pb.init_video_vidcloud();
           }
+        });
+      }
+      else if (__SDONI){
+        onianime.loadVideo(pb.data,function(v){
+          if (!v){
+            pb.playback_error(
+              'PLAYBACK ERROR',
+              "Loading video from OniAnime failed."
+            );
+            return;
+          }
+          vtt.clear();
+          pb.subtitles=[];
+          pb.updateStreamTypeInfo();
+          pb.init_video_mp4upload(v.url);
+          pb.cfg_update_el();
         });
       }
       else if (__SD7){
@@ -8199,6 +8233,9 @@ const home={
       // Hi Anime
       rd=home.hi_parse(v);
     }
+    else if (__SDONI){
+      rd=onianime.parseCatalog(v);
+    }
     else if (__SD7){
       // gojo
       rd=gojo.recent_parse(v);
@@ -8371,7 +8408,7 @@ const home={
         }
       }
       if (home.withspre){
-        var PGSZ=(__SD2||__SDKAI)?60:30;
+        var PGSZ=(__SD2||__SDKAI||__SDONI)?60:30;
         while (g.P.childElementCount>PGSZ){
           g._spre.push(g.P.firstElementChild.nextElementSibling);
           g.P.removeChild(g.P.firstElementChild.nextElementSibling);
@@ -8401,6 +8438,9 @@ const home={
       if (r.ok){
         try{
           if (__SD2){
+            home.recent_parse(g,r.responseText);
+          }
+          else if (__SDONI){
             home.recent_parse(g,r.responseText);
           }
           else if (__SDKAI){
@@ -8520,6 +8560,9 @@ const home={
       // home.home_slide._midx=(__SD==2)?2:2.5;
       if (__SDKAI){
         td=kai.parseHomeSlideshow(h);
+      }
+      else if (__SDONI){
+        td=[];
       }
       else if (__SD2){
         // hianime
@@ -9528,6 +9571,12 @@ const home={
         ["dub","/dubbed-anime?page=", "Latest Dub", true],
         ["top","/top-airing?page=", "Top Airing", true],
         ["movies","/movie?page=", "Movies", false]
+      ];
+    }
+    else if (__SDONI){
+      homepage=[
+        ["recent","/api/catalog?sort_by=latest_uploads&page=", "Recently Updated", true],
+        ["popular","/api/catalog?sort_by=popularity&page=", "Popular", true]
       ];
     }
     else if (__SD5){
@@ -11591,6 +11640,9 @@ const home={
       if (__SD2){
         rd=home.hi_parse(v);
       }
+      else if (__SDONI){
+        rd=onianime.parseCatalog(v);
+      }
       else if (__SD5){
         rd=home.flix_parse(v);
       }
@@ -12722,6 +12774,9 @@ const home={
       }
       else if (__SD2){
         genrelist=_API.genres_hi;
+      }
+      else if (__SDONI){
+        genrelist={};
       }
       else if (__SD6){
         genrelist=kaas.genres;
@@ -15859,7 +15914,7 @@ query ($weekStart: Int, $weekEnd: Int, $page: Int, $perPage: Int) {
         epsel=_MAL.pop.var.ep;
       }
 
-      openurl+=(__SDKAI||__SD2||__SD5||__SD6||__SD7||__SD8)?('#'+epsel):('/ep-'+epsel);
+      openurl+=(__SDKAI||__SD2||__SDONI||__SD5||__SD6||__SD7||__SD8)?('#'+epsel):('/ep-'+epsel);
 
       console.log("MAL Open Anime = "+openurl);
       _MAL.popup_close();

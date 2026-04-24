@@ -25,11 +25,12 @@ const fs = require("fs");
 
 const common={
   UAG: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-  /* Source 1=Anikai, 2=Hianime */
+  /* Source 1=Anikai, 2=Hianime, 3=OniAnime */
   dns:[
     "anikai.to", /* default */
     "anikai.to",
-    "hianime.to"
+    "hianime.to",
+    "onianime.hu"
   ],
   main:{
     /* animetv.js global object */
