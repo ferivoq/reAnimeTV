@@ -2237,6 +2237,10 @@ window.hianimeapi=__HIANIME;
 const __ONIANIME = {
   ns: 'https://onianime.hu',
   server: 'karks',
+  cache:{
+    episodes:{},
+    counts:{}
+  },
   headers:function(){
     return {
       'Accept':'application/json, text/plain, */*',
@@ -2279,6 +2283,9 @@ const __ONIANIME = {
     d.status=__ONIANIME.parseStatus(a.status);
     d.epsub=d.ep=a.part_count?(''+a.part_count):'';
     d.eptotal=d.ep;
+    if (a.part_count){
+      __ONIANIME.cache.counts[a.id]=a.part_count;
+    }
     if (a.agerestriction && a.agerestriction>=18){
       d.adult=true;
     }
@@ -2300,6 +2307,28 @@ const __ONIANIME = {
       console.log('OniAnime catalog parse error: '+e);
     }
     return [];
+  },
+  getEpisodes:function(animeId, cb){
+    if (__ONIANIME.cache.episodes[animeId]){
+      cb(__ONIANIME.cache.episodes[animeId]);
+      return;
+    }
+    __ONIANIME.req('/api/anime/'+enc(animeId)+'/episodes', function(r){
+      if (!r.ok){
+        cb(null);
+        return;
+      }
+      try{
+        var j=JSON.parse(r.responseText);
+        var eps=j.episodes||[];
+        eps.sort(function(a,b){ return a.ep-b.ep; });
+        __ONIANIME.cache.episodes[animeId]=j;
+        __ONIANIME.cache.counts[animeId]=j.totalEpisodes||eps.length;
+        cb(j);
+      }catch(e){
+        cb(null);
+      }
+    });
   },
   getTooltip:function(id, cb, url, isview){
     var animeId=__ONIANIME.animeId(id||url);
@@ -2324,7 +2353,7 @@ const __ONIANIME = {
           status:__ONIANIME.parseStatus(info.status),
           rating:'',
           quality:null,
-          ep:0,
+          ep:info.part_count||__ONIANIME.cache.counts[animeId]||0,
           ttid:'/anime/'+info.id,
           url:'/anime/'+info.id,
           poster:info.image||'',
@@ -2346,7 +2375,16 @@ const __ONIANIME = {
           o.stp=0;
           o.streamtype='';
         }
-        cb(o);
+        if (o.ep || isview){
+          cb(o);
+          return;
+        }
+        __ONIANIME.getEpisodes(animeId,function(eps){
+          if (eps){
+            o.ep=eps.totalEpisodes||((eps.episodes||[]).length);
+          }
+          cb(o);
+        });
       }catch(e){
         console.log('OniAnime tooltip parse error: '+e);
         cb(null);
@@ -2421,16 +2459,14 @@ const __ONIANIME = {
       out.anilistId=tip.anilistId;
       done();
     },url,1);
-    __ONIANIME.req('/api/anime/'+enc(animeId)+'/episodes', function(r){
-      if (!r.ok){
+    __ONIANIME.getEpisodes(animeId, function(j){
+      if (!j){
         failed=true;
         cb({status:false}, uid);
         return;
       }
       try{
-        var j=JSON.parse(r.responseText);
         var eps=j.episodes||[];
-        eps.sort(function(a,b){ return a.ep-b.ep; });
         for (var i=0;i<eps.length;i++){
           var ep=eps[i];
           var s={
