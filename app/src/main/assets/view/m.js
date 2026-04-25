@@ -279,7 +279,7 @@ function cleanJsonHtml(s){
   return (s+'').replace(/\\"/g,'"').replace(/\\'/g,"'").replace(/\\\\/g,'\\').replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\r/g,'\r');
 }
 if (__SDKAI){
-  $ap('https://raw.githubusercontent.com/amarullz/AnimeTV/refs/heads/master/tools/utils/kai.js?'+$time(),function(r){
+  $ap('https://raw.githubusercontent.com/ferivoq/reAnimeTV/refs/heads/main/tools/utils/kai.js?'+$time(),function(r){
     if (r.ok){
       try{ eval(r.responseText); }catch(e){}
     }
@@ -4255,7 +4255,7 @@ const _API={
   },
 
   /* Fetch animetv-info last message */
-  discord_info_url:"https://raw.githubusercontent.com/amarullz/AnimeTV/refs/heads/master/tools/home-info.json",
+  discord_info_url:"https://raw.githubusercontent.com/ferivoq/reAnimeTV/refs/heads/main/tools/home-info.json",
   discordFetch:function(cb){
     $ap(_API.discord_info_url+"?"+$tick(), cb);
   }
@@ -4272,7 +4272,7 @@ const _API={
         srv="Server "+srv;
       }
       verel.innerHTML="<b>AnimeTV "+_JSAPI.getVersion(0)+" "+
-        "&copy; 2023-2024 amarullz.com</b><br />Build "+_JSAPI.getVersion(1)
+        "&copy; 2023-2026 ferivoq</b><br />Build "+_JSAPI.getVersion(1)
         +" - "+srv+" - Source "+__SD_NAME;
     }
   }catch(e){}
@@ -20005,7 +20005,7 @@ const touchHelper={
     }
     window._ELECTRON_CHECK_UPDATE=function(ismenu){
       _JSAPI.storeSet('__noautoupdate','0');
-      $ap('https://raw.githubusercontent.com/amarullz/AnimeTV/refs/heads/master/server.json',function(r){
+      $ap('https://raw.githubusercontent.com/ferivoq/reAnimeTV/refs/heads/main/server.json',function(r){
         if (r.ok){
           try{
             var update=JSON.parse(r.responseText);

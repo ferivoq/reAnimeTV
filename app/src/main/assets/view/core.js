@@ -1724,7 +1724,7 @@ const _API={
   },
 
   /* Fetch animetv-info last message */
-  discord_info_url:"https://raw.githubusercontent.com/amarullz/AnimeTV/refs/heads/master/tools/home-info.json",
+  discord_info_url:"https://raw.githubusercontent.com/ferivoq/reAnimeTV/refs/heads/main/tools/home-info.json",
   discordFetch:function(cb){
     $ap(_API.discord_info_url+"?"+$tick(), cb);
   }
@@ -17474,7 +17474,7 @@ const touchHelper={
     }
     window._ELECTRON_CHECK_UPDATE=function(ismenu){
       _JSAPI.storeSet('__noautoupdate','0');
-      $ap('https://raw.githubusercontent.com/amarullz/AnimeTV/refs/heads/master/server.json',function(r){
+      $ap('https://raw.githubusercontent.com/ferivoq/reAnimeTV/refs/heads/main/server.json',function(r){
         if (r.ok){
           try{
             var update=JSON.parse(r.responseText);

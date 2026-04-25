@@ -53,7 +53,7 @@ function cleanJsonHtml(s){
   return (s+'').replace(/\\"/g,'"').replace(/\\'/g,"'").replace(/\\\\/g,'\\').replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\r/g,'\r');
 }
 if (__SDKAI){
-  $ap('https://raw.githubusercontent.com/amarullz/AnimeTV/refs/heads/master/tools/utils/kai.js?'+$time(),function(r){
+  $ap('https://raw.githubusercontent.com/ferivoq/reAnimeTV/refs/heads/main/tools/utils/kai.js?'+$time(),function(r){
     if (r.ok){
       try{ eval(r.responseText); }catch(e){}
     }
