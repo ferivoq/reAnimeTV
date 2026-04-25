@@ -1,8 +1,8 @@
 {
   "update": "reanime",
   "appnum": 602,
-  "appver": "6.0.2",
+  "appver": "6.0.3",
   "appsize": "6.1 MB",
-  "appurl": "https://github.com/ferivoq/reAnimeTV/releases/download/Nightly_6.0.2/animetv-6.0.2-Nightly-release.apk",
-  "appnote": "- Fixed OniAnime\n- Fixed AniList MyList"
+  "appurl": "https://github.com/ferivoq/reAnimeTV/releases/download/Nightly_6.0.3/animetv-6.0.3-Nightly-release.apk",
+  "appnote": "- Fixed AnimeKai"
 }
