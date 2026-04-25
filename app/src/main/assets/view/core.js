@@ -9401,7 +9401,7 @@ const home={
           function(el){
             home.tabbed_list(
               el,
-              "AniList "+_MAL.alauth.user,
+              "AniList "+_MAL.alusername("Account"),
               [
                 'CURRENT',
                 'PLANNING',
@@ -9422,7 +9422,7 @@ const home={
               _MAL.alhome_loader
             );
           },
-          "AniList Tabbed "+_MAL.alauth.user,
+          "AniList Tabbed "+_MAL.alusername("Account"),
           true,
           null,
           ["anilist"]
@@ -9436,7 +9436,7 @@ const home={
             el._atype='CURRENT';
             home.recent_init(el, _MAL.alhome_loader);
           },
-          "AniList "+_MAL.alauth.user,
+          "AniList "+_MAL.alusername("Account"),
           false,
           null,
           ["anilisttab"]
@@ -9451,7 +9451,7 @@ const home={
             el._atype='PLANNING';
             home.recent_init(el, _MAL.alhome_loader);
           },
-          "AniList Plan to Watch "+_MAL.alauth.user,
+          "AniList Plan to Watch "+_MAL.alusername("Account"),
           false,
           null
         ]
@@ -11257,7 +11257,7 @@ const home={
           },
           home.settings.integration.P,
           _MAL.islogin(1)?
-          '<c>lock_open</c> AniList Logout<span class="value">'+special(_MAL.alauth.user)+'</span>':
+          '<c>lock_open</c> AniList Logout<span class="value">'+special(_MAL.alusername("Account"))+'</span>':
           '<c>hub</c> AniList Login'
         );
 
@@ -13706,6 +13706,49 @@ const _MAL={
   limit:12,
   data:{},
   aldata:{},
+  alusername:function(fallback){
+    if (_MAL.alauth){
+      if (_MAL.alauth.user){
+        return _MAL.alauth.user;
+      }
+      if (_MAL.alauth.name){
+        return _MAL.alauth.name;
+      }
+      if (_MAL.alauth.username){
+        return _MAL.alauth.username;
+      }
+    }
+    return fallback?fallback:'';
+  },
+  aluser:function(cb){
+    var user=_MAL.alusername();
+    if (user){
+      cb(user);
+      return;
+    }
+    if (!_MAL.altoken || !_MAL.alauth){
+      cb(null);
+      return;
+    }
+    _MAL.alreq(`query {
+      Viewer {
+        id
+        name
+      }
+    }`,{},function(v){
+      try{
+        var viewer=v.data.Viewer;
+        if (viewer && viewer.name){
+          _MAL.alauth.user=viewer.name;
+          _MAL.alauth.user_id=viewer.id;
+          _JSAPI.storeSet(_API.user_prefix+"anilist_auth",JSON.stringify(_MAL.alauth));
+          cb(viewer.name);
+          return;
+        }
+      }catch(e){}
+      cb(null);
+    });
+  },
   islogin:function(isanilist){
     if (isanilist){
       return (_MAL.altoken?true:false);
@@ -13746,11 +13789,14 @@ const _MAL={
       try{
         _MAL.alauth = JSON.parse(aldata);
         if ('access_token' in _MAL.alauth){
+          if (!_MAL.alauth.user){
+            _MAL.alauth.user=_MAL.alauth.name||_MAL.alauth.username||'';
+          }
           _MAL.altoken=_MAL.alauth.access_token;
           if (_MAL.alauth.exp<$time()){
             // Expire
-            _MAL.token="";
-            _MAL.auth=null;
+            _MAL.altoken="";
+            _MAL.alauth=null;
           }
         }
       }catch(ee){
@@ -14235,7 +14281,7 @@ const _MAL={
             }
           }
         }`,{
-          "usr":_MAL.alauth.user
+          "usr":_MAL.alusername()
         },function(v){
           if (v){
             try{
@@ -14288,7 +14334,7 @@ const _MAL={
           bannerImage
         }
       }`,{
-        "usr":_MAL.alauth.user
+        "usr":_MAL.alusername()
       },function(v){
         if (v){
           try{
@@ -14557,6 +14603,18 @@ query ($weekStart: Int, $weekEnd: Int, $page: Int, $perPage: Int) {
     if (!stype){
       stype='CURRENT';
     }
+    var user=_MAL.alusername();
+    if (!user){
+      _MAL.aluser(function(resolvedUser){
+        if (resolvedUser){
+          _MAL.allist(stype,page,cb);
+        }
+        else{
+          cb(null);
+        }
+      });
+      return;
+    }
     var sortv="ADDED_TIME_DESC";
     sortv="UPDATED_TIME_DESC";
     _MAL.alreq(`query ($user: String, $page: Int, $perPage: Int) {
@@ -14594,7 +14652,7 @@ query ($weekStart: Int, $weekEnd: Int, $page: Int, $perPage: Int) {
         }
       }
     }`,{
-      user:_MAL.alauth.user,
+      user:user,
       page:page,
       perPage:_MAL.limit
     },cb);
@@ -14778,14 +14836,18 @@ query ($weekStart: Int, $weekEnd: Int, $page: Int, $perPage: Int) {
           access_token:d.tk,
           exp:d.ex+$time(),
           expires_in:d.ex,
-          user:d.user
+          user:d.user||d.name||d.username||''
         };
 
         if (tp==2){
-          _JSAPI.storeSet(_API.user_prefix+"anilist_auth",JSON.stringify(dt));
-          console.log("ANILIST-ONLOGIN: "+JSON.stringify(dt));
-          _API.showToast("AniList login sucessfull...");
-          _API.reload();
+          _MAL.alauth=dt;
+          _MAL.altoken=dt.access_token;
+          _MAL.aluser(function(){
+            _JSAPI.storeSet(_API.user_prefix+"anilist_auth",JSON.stringify(_MAL.alauth));
+            console.log("ANILIST-ONLOGIN: "+JSON.stringify(_MAL.alauth));
+            _API.showToast("AniList login sucessfull...");
+            _API.reload();
+          });
         }
         else{
           _JSAPI.storeSet(_API.user_prefix+"mal_auth",JSON.stringify(dt));
@@ -14825,8 +14887,11 @@ query ($weekStart: Int, $weekEnd: Int, $page: Int, $perPage: Int) {
         try{
           _MAL.allist_parse(g,v);
         }catch(e){}
-        g._onload=0;
       }
+      else{
+        g.classList.add('nodata');
+      }
+      g._onload=0;
     });
   },
   update_epel:function(id,vid,cep,isanilist){
