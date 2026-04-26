@@ -1,3 +1,6 @@
+> [!WARNING]  
+> There is a known bug where the update popup appears every time the app is opened. I’ll fix it when I have time - for now, please ignore it.
+
 # reAnimeTV
 
 reAnimeTV is a continuation of the original AnimeTV app made by amarullz. This project focuses on maintaining a working and usable version of the app. Several providers from the original project have become outdated or broken over time, so in this fork, non functional providers have been removed and the AnimeKai provider has been fixed and is currently the only English working provider. I also added a Hungarian provider named OniAnime.
